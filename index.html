@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гараж — цифровой дневник автомобиля</title>
+<style>
+  :root{
+    --text:#eef2ff;
+    --muted:#94a3b8;
+    --accent:#3b82f6;
+    --accent2:#8b5cf6;
+    --danger:#f43f5e;
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",Arial,sans-serif;
+    background:#070a12;color:var(--text);min-height:100vh;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  [hidden]{display:none!important}
+
+  /* ---------- ФОН ---------- */
+  .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at top,#101830,#070a12 65%)}
+  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+  .blob-1{width:520px;height:520px;background:#2563eb;top:-160px;left:-110px;animation:float1 22s ease-in-out infinite}
+  .blob-2{width:620px;height:620px;background:#7c3aed;top:18%;right:-240px;animation:float2 28s ease-in-out infinite}
+  .blob-3{width:440px;height:440px;background:#ec4899;bottom:-140px;left:28%;opacity:.35;animation:float3 24s ease-in-out infinite}
+  .blob-4{width:360px;height:360px;background:#06b6d4;top:58%;left:-130px;opacity:.3;animation:float1 30s ease-in-out infinite reverse}
+  @keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,60px) scale(1.1)}}
+  @keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-100px,80px) scale(.95)}}
+  @keyframes float3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,-80px) scale(1.15)}}
+
+  /* ---------- СТЕКЛО ---------- */
+  .glass{
+    background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.028));
+    backdrop-filter:blur(26px) saturate(170%);
+    -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:var(--radius);
+    box-shadow:0 8px 34px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.09);
+  }
+
+  /* ---------- ЭКРАНЫ ---------- */
+  .screen{display:none;padding:24px 16px 60px;min-height:100vh}
+  .screen.active{display:block;animation:screenIn .55s cubic-bezier(.22,1,.36,1)}
+  @keyframes screenIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes tabIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  #welcome.active,#auth.active{display:flex;align-items:center;justify-content:center}
+
+  /* ---------- БРЕНД ---------- */
+  .brand-mark{
+    width:40px;height:40px;border-radius:12px;
+    background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+    display:grid;place-items:center;font-weight:800;color:#fff;
+    box-shadow:0 4px 20px rgba(59,130,246,.4);flex-shrink:0;
+  }
+  .brand-mark.big{width:88px;height:88px;border-radius:26px;font-size:42px;margin:0 auto 22px;animation:pulseGlow 4s ease-in-out infinite}
+  @keyframes pulseGlow{0%,100%{box-shadow:0 4px 30px rgba(59,130,246,.4)}50%{box-shadow:0 4px 55px rgba(139,92,246,.65)}}
+
+  /* ---------- WELCOME ---------- */
+  .welcome-wrap{max-width:760px;text-align:center;padding:20px;animation:fadeUp .8s ease}
+  .welcome-title{font-size:58px;font-weight:800;letter-spacing:-2.5px;margin:0 0 8px;background:linear-gradient(135deg,#fff,#a5b4fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .welcome-tag{font-size:18px;color:#a5b4fc;margin:0 0 18px}
+  .welcome-story{font-size:15px;color:var(--muted);line-height:1.65;max-width:540px;margin:0 auto 30px}
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+  .feature{padding:20px 12px;text-align:center;animation:fadeUp .8s ease backwards}
+  .feature:nth-child(1){animation-delay:.1s}.feature:nth-child(2){animation-delay:.2s}
+  .feature:nth-child(3){animation-delay:.3s}.feature:nth-child(4){animation-delay:.4s}
+  .feature-icon{font-size:26px;margin-bottom:10px}
+  .feature-title{font-size:13px;font-weight:600;margin-bottom:4px}
+  .feature-text{font-size:11px;color:var(--muted);line-height:1.4}
+
+  /* ---------- КНОПКИ ---------- */
+  .btn-primary{
+    width:100%;font:inherit;font-size:15px;font-weight:600;color:#fff;
+    background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+    border:none;padding:14px;border-radius:14px;cursor:pointer;
+    transition:transform .1s,box-shadow .2s,filter .2s;
+    box-shadow:0 8px 26px rgba(59,130,246,.32);
+  }
+  .btn-primary:hover{filter:brightness(1.12);box-shadow:0 10px 32px rgba(139,92,246,.45)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-primary.big{width:auto;padding:16px 44px;font-size:16px;border-radius:999px}
+  .btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:8px 14px;border-radius:10px;font:inherit;font-size:13px;cursor:pointer;transition:all .2s}
+  .btn-ghost:hover{background:rgba(244,63,94,.15);color:#fca5a5;border-color:rgba(244,63,94,.3)}
+  .btn-ghost.neutral:hover{background:rgba(255,255,255,.1);color:var(--text);border-color:rgba(255,255,255,.2)}
+  .link-btn{background:none;border:none;color:#a5b4fc;font:inherit;font-size:13px;cursor:pointer;padding:8px 0;transition:color .2s}
+  .link-btn:hover{color:#fff}
+  .welcome-foot{font-size:12px;color:var(--muted);margin-top:20px}
+
+  /* ---------- AUTH ---------- */
+  .auth-wrap{width:100%;max-width:420px;padding:36px 32px;animation:fadeUp .6s ease}
+  .auth-title{font-size:26px;font-weight:700;margin:0 0 6px;letter-spacing:-.5px}
+  .auth-sub{color:var(--muted);font-size:14px;margin:0 0 22px}
+
+  /* ---------- ПОЛЯ ---------- */
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .field label{font-size:13px;color:var(--muted);font-weight:500}
+  .field .hint{font-size:11px;color:#64748b;margin-top:2px}
+  input,select{
+    width:100%;font:inherit;font-size:15px;color:var(--text);
+    background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
+    padding:12px 14px;border-radius:12px;outline:none;
+    transition:border-color .2s,box-shadow .2s,background .2s;
+  }
+  input:focus,select:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 4px rgba(99,102,241,.15);background:rgba(0,0,0,.35)}
+  input::placeholder{color:rgba(148,163,184,.5)}
+  input[type="date"]{color-scheme:dark}
+  .auth-error{color:#fca5a5;font-size:13px;min-height:18px;margin-bottom:8px}
+  .auth-links{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:14px}
+
+  /* ---------- AUTOCOMPLETE ---------- */
+  .autocomplete-wrap{position:relative}
+  .autocomplete-list{position:absolute;top:100%;left:0;right:0;z-index:50;background:#151a2e;border:1px solid rgba(255,255,255,.12);border-radius:12px;margin-top:4px;max-height:200px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none}
+  .autocomplete-list.open{display:block;animation:tabIn .2s ease}
+  .autocomplete-item{padding:10px 14px;font-size:14px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:8px}
+  .autocomplete-item:hover,.autocomplete-item.active{background:rgba(99,102,241,.2)}
+
+  /* ---------- APP ---------- */
+  .app-shell{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:14px;animation:fadeUp .5s ease}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+  .topbar-left{display:flex;align-items:center;gap:12px;cursor:pointer;padding:6px 10px 6px 6px;border-radius:14px;transition:background .2s}
+  .topbar-left:hover{background:rgba(255,255,255,.06)}
+  .topbar-title{font-weight:700;font-size:16px;letter-spacing:-.3px;display:flex;align-items:center;gap:6px}
+  .topbar-title::after{content:'▾';font-size:11px;color:var(--muted);opacity:.7}
+  .topbar-user{font-size:12px;color:var(--muted)}
+
+  /* ---------- ВКЛАДКИ МАШИН ---------- */
+  .car-tabs{display:flex;gap:4px;padding:6px;overflow-x:auto;scrollbar-width:none}
+  .car-tabs::-webkit-scrollbar{display:none}
+  .car-empty{font-size:13px;color:var(--muted);padding:10px 14px}
+  .car-tab{
+    flex-shrink:0;display:flex;align-items:center;gap:9px;
+    background:transparent;border:1px solid transparent;color:var(--muted);
+    padding:9px 16px;border-radius:14px;font:inherit;font-size:13px;
+    cursor:pointer;transition:all .22s;white-space:nowrap;
+  }
+  .car-tab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  .car-tab.active{
+    background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(139,92,246,.3));
+    border-color:rgba(139,92,246,.5);color:#fff;
+    box-shadow:0 4px 18px rgba(59,130,246,.22);
+  }
+  .car-tab-logo{width:22px;height:22px;object-fit:contain;flex-shrink:0}
+  .car-tab-plate{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}
+
+  /* ---------- ТАБЫ ---------- */
+  .tabs{display:flex;padding:6px;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab-btn{flex:1;min-width:88px;background:transparent;border:none;color:var(--muted);padding:11px 16px;border-radius:14px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:color .2s,background .2s;white-space:nowrap}
+  .tab-btn:hover:not(.active){color:var(--text)}
+  .tab-btn.active{background:rgba(255,255,255,.1);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+
+  /* ---------- СТАТИСТИКА ---------- */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .stat-card{padding:16px 18px}
+  .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .stat-value{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+
+  /* ---------- ТАБ-КОНТЕНТ ---------- */
+  .tab-content{display:none;flex-direction:column;gap:14px}
+  .tab-content.active{display:flex;animation:tabIn .4s ease}
+
+  .card{overflow:hidden}
+  .card-head{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06);font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .card-sub{font-size:12px;color:var(--muted);font-weight:400}
+
+  .entry-form{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .entry-form .field{margin-bottom:0}
+  .entry-form .field.full{grid-column:1/-1}
+  .entry-form .btn-primary{grid-column:1/-1}
+
+  .list{list-style:none;margin:0;padding:0}
+  .record{display:grid;grid-template-columns:92px 1fr auto auto;grid-template-areas:"date body cost actions";gap:12px;align-items:center;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);transition:background .2s}
+  .record:hover{background:rgba(255,255,255,.03)}
+  .record:last-child{border-bottom:none}
+  .r-date{grid-area:date;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .r-body{grid-area:body;min-width:0}
+  .r-title{font-weight:500;font-size:15px;overflow-wrap:anywhere}
+  .r-note{font-size:13px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .r-cost{grid-area:cost;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .r-actions{grid-area:actions;display:flex;gap:4px}
+  .r-del,.r-edit{width:30px;height:30px;background:transparent;color:#64748b;font-size:14px;display:grid;place-items:center;padding:0;border:none;border-radius:8px;cursor:pointer;transition:all .2s}
+  .r-del:hover{background:rgba(244,63,94,.15);color:#fca5a5}
+  .r-edit:hover{background:rgba(59,130,246,.2);color:#93c5fd}
+  .qty-badge{display:inline-block;font-size:11px;font-weight:600;background:rgba(139,92,246,.25);color:#c4b5fd;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:middle}
+  .empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:14px}
+  .no-car{padding:26px 20px;text-align:center;color:var(--muted);font-size:14px}
+
+  /* ---------- КАРТОЧКИ МАШИН ---------- */
+  .car-card{padding:18px 20px;margin:0 0 12px;transition:border-color .2s,transform .2s}
+  .car-card:last-child{margin-bottom:0}
+  .car-card.active{border-color:rgba(139,92,246,.5)}
+  .car-card-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .car-avatar{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;overflow:hidden;background:rgba(255,255,255,.06);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  .car-avatar img{width:36px;height:36px;object-fit:contain}
+  .car-avatar .letter{font-weight:800;font-size:20px;color:#fff}
+  .car-card-info{flex:1;min-width:0}
+  .car-card-title{font-weight:600;font-size:16px;letter-spacing:-.2px}
+  .car-card-sub{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .badge-active{font-size:11px;font-weight:600;color:#c4b5fd;background:rgba(139,92,246,.22);padding:4px 10px;border-radius:999px;border:1px solid rgba(139,92,246,.35);flex-shrink:0}
+  .car-card-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 0;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:12px}
+  .car-card-stats div{display:flex;flex-direction:column;gap:2px}
+  .car-card-stats span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .car-card-stats b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .car-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn-mini{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);font:inherit;font-size:13px;font-weight:500;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .2s}
+  .btn-mini:hover{background:rgba(255,255,255,.12)}
+  .btn-mini.danger{color:#fca5a5}
+  .btn-mini.danger:hover{background:rgba(244,63,94,.15);border-color:rgba(244,63,94,.3)}
+  .btn-mini.accent{background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.35);color:#93c5fd}
+  .btn-mini.accent:hover{background:rgba(59,130,246,.3)}
+
+  /* ---------- МОДАЛКА ---------- */
+  .modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-overlay.open{display:flex;animation:screenIn .25s ease}
+  .modal{width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:26px 24px;animation:fadeUp .3s ease}
+  .modal h3{margin:0 0 18px;font-size:20px;letter-spacing:-.4px}
+  .modal .entry-form{padding:0}
+  .modal-actions{display:flex;gap:10px;margin-top:18px}
+  .modal-actions .btn-primary{flex:1}
+  .modal-actions .btn-ghost{flex:0 0 auto;padding:14px 20px}
+
+  /* ---------- ПРОФИЛЬ ---------- */
+  .profile-head{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+  .profile-avatar{width:60px;height:60px;border-radius:20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:grid;place-items:center;font-size:24px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(59,130,246,.4);flex-shrink:0}
+  .profile-name{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  .profile-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .profile-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px;padding:14px;background:rgba(0,0,0,.2);border-radius:14px}
+  .profile-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .profile-stat-value{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+  .profile-section-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+  .profile-cars{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .profile-car{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+  .profile-car-logo{width:28px;height:28px;object-fit:contain;flex-shrink:0}
+  .profile-car-info{flex:1;min-width:0}
+  .profile-car-name{font-size:14px;font-weight:600}
+  .profile-car-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .profile-car-stats{text-align:right;flex-shrink:0}
+  .profile-car-stats b{font-size:14px}
+  .profile-car-stats-sub{font-size:11px;color:var(--muted)}
+  .profile-empty{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ---------- ПОИСК ЗАПЧАСТЕЙ ---------- */
+  .search-panel{padding:18px 20px}
+  .search-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+  .search-row .field{margin-bottom:0}
+  .search-results{padding:0 20px 18px}
+  .search-empty{font-size:13px;color:var(--muted);padding:10px 0}
+  .shop-card{padding:14px 16px;margin-bottom:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:border-color .2s}
+  .shop-card:hover{border-color:rgba(139,92,246,.35)}
+  .shop-name{font-weight:600;font-size:14px;margin-bottom:4px}
+  .shop-meta{font-size:12px;color:var(--muted);line-height:1.6}
+  .shop-meta a{color:#93c5fd;text-decoration:none}
+  .shop-meta a:hover{text-decoration:underline}
+  .search-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .search-link-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.35);color:#93c5fd;padding:9px 14px;border-radius:10px;font:inherit;font-size:13px;text-decoration:none;transition:all .2s}
+  .search-link-btn:hover{background:rgba(59,130,246,.3);color:#fff}
+
+  /* ---------- ОТЧЁТ ---------- */
+  .report-toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:18px 20px;align-items:center}
+  .report-hint{font-size:12px;color:var(--muted);margin-left:auto}
+  .report{
+    background:#fff;color:#1a1a1a;border-radius:var(--radius);padding:40px;
+    font-size:13px;line-height:1.55;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .report-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #1a1a1a;margin-bottom:24px;gap:20px;flex-wrap:wrap}
+  .report-brand{display:flex;align-items:center;gap:14px}
+  .report-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:800;flex-shrink:0}
+  .report h1{font-size:22px;margin:0 0 2px;letter-spacing:-.5px;color:#1a1a1a}
+  .report-sub{font-size:12px;color:#666}
+  .report-meta{font-size:12px;color:#444;line-height:1.7;text-align:right}
+  .report-meta strong{color:#1a1a1a}
+  .report-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+  .report-summary-card{background:#f5f6fa;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px}
+  .report-summary-label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .report-summary-value{font-size:18px;font-weight:700;color:#1a1a1a}
+  .report h2{font-size:15px;text-transform:uppercase;letter-spacing:1px;margin:32px 0 16px;padding-bottom:8px;border-bottom:2px solid #1a1a1a;color:#1a1a1a}
+  .report-car{margin-bottom:28px;padding-bottom:24px;border-bottom:1px dashed #d1d5db}
+  .report-car:last-child{border-bottom:none}
+  .report-car-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .report-car-logo{width:40px;height:40px;object-fit:contain;flex-shrink:0}
+  .report-car-title{flex:1;min-width:0}
+  .report-car-title h3{font-size:17px;margin:0 0 3px;text-transform:none;letter-spacing:0;color:#1a1a1a}
+  .report-car-details{font-size:12px;color:#666}
+  .report-car-total{font-size:20px;font-weight:700;color:#1a1a1a;white-space:nowrap}
+  .report h4{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#555;margin:16px 0 8px}
+  .report-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+  .report-table th{text-align:left;padding:8px 10px;background:#f5f6fa;border-bottom:2px solid #1a1a1a;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#444}
+  .report-table td{padding:8px 10px;border-bottom:1px solid #e5e7eb;color:#1a1a1a}
+  .report-table .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .report-table tfoot td{font-weight:700;background:#f9fafb;border-top:2px solid #1a1a1a;border-bottom:none}
+  .report-empty{padding:20px;text-align:center;color:#888;background:#f5f6fa;border-radius:8px}
+  .report-empty-small{font-size:12px;color:#888;padding:6px 0 14px;font-style:italic}
+  .report-foot{margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#888;text-align:center}
+
+  /* ---------- МОБИЛЬНАЯ ---------- */
+  @media (max-width:640px){
+    .welcome-title{font-size:42px}
+    .features{grid-template-columns:repeat(2,1fr)}
+    .stats-row{gap:8px}
+    .stat-card{padding:12px 14px}
+    .stat-value{font-size:16px}
+    .stat-label{font-size:10px}
+    .entry-form{grid-template-columns:1fr}
+    .record{grid-template-columns:1fr auto;grid-template-areas:"date actions" "body cost";row-gap:6px}
+    .r-cost{align-self:end;justify-self:end}
+    .car-card-stats{grid-template-columns:repeat(2,1fr)}
+    .tab-btn{padding:10px 8px;font-size:13px;min-width:78px}
+    .search-row{grid-template-columns:1fr}
+    .profile-stats{grid-template-columns:repeat(2,1fr)}
+    .report{padding:22px}
+    .report-summary{grid-template-columns:repeat(2,1fr)}
+    .report-header{flex-direction:column}
+    .report-meta{text-align:left}
+  }
+
+  /* ---------- ПЕЧАТЬ ---------- */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    html, body { background: #fff !important; color: #000 !important; }
+    .bg, .blob, .topbar, .tabs, .car-tabs, .car-bar, .stats-row,
+    .modal-overlay, .no-print, .report-toolbar { display: none !important; }
+    .screen { display: none !important; padding: 0; min-height: 0; }
+    #app { display: block !important; padding: 0; min-height: 0; }
+    .app-shell { gap: 0; max-width: 100%; display: block; animation: none; }
+    .tab-content { display: none !important; }
+    #tab-reports { display: block !important; animation: none; }
+    .report {
+      padding: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+      background: #fff !important; color: #000 !important;
+    }
+    .report-car { page-break-inside: avoid; }
+    .report-table tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+
+<!-- ============ ЭКРАН 1: ПРИВЕТСТВИЕ ============ -->
+<section id="welcome" class="screen active">
+  <div class="welcome-wrap">
+    <div class="brand-mark big">Г</div>
+    <h1 class="welcome-title">Гараж</h1>
+    <p class="welcome-tag">Цифровой дневник вашего автомобиля</p>
+    <p class="welcome-story">
+      Записывайте ремонты, покупки запчастей и расходы — по каждой машине отдельно.
+      Вся история, статистика и затраты всегда под рукой, в одном месте.
+    </p>
+    <div class="features">
+      <div class="feature glass"><div class="feature-icon">🛠️</div><div class="feature-title">Учёт ремонтов</div><div class="feature-text">Что сделали и сколько заплатили</div></div>
+      <div class="feature glass"><div class="feature-icon">🔩</div><div class="feature-title">Запчасти</div><div class="feature-text">Покупки, магазины и цены</div></div>
+      <div class="feature glass"><div class="feature-icon">🚗</div><div class="feature-title">Несколько авто</div><div class="feature-text">Отдельная статистика для каждой</div></div>
+      <div class="feature glass"><div class="feature-icon">📄</div><div class="feature-title">Отчёт</div><div class="feature-text">Красивый документ, печать и PDF</div></div>
+    </div>
+    <button class="btn-primary big" id="startBtn">Создать гараж</button>
+    <p class="welcome-foot">Данные хранятся только в вашем браузере</p>
+  </div>
+</section>
+
+<!-- ============ ЭКРАН 2: АВТОРИЗАЦИЯ ============ -->
+<section id="auth" class="screen">
+  <div class="auth-wrap glass">
+    <h2 class="auth-title" id="authTitle">Вход</h2>
+    <p class="auth-sub" id="authSub">Войдите, чтобы открыть свой гараж</p>
+    <form id="authForm" novalidate>
+      <div class="field">
+        <label for="authLogin">Логин</label>
+        <input id="authLogin" autocomplete="username" placeholder="Минимум 3 символа" required>
+      </div>
+      <div class="field">
+        <label for="authPass">Пароль</label>
+        <input id="authPass" type="password" autocomplete="current-password" placeholder="Минимум 4 символа" required>
+      </div>
+      <div class="field" id="authPass2Field" hidden>
+        <label for="authPass2">Повторите пароль</label>
+        <input id="authPass2" type="password" autocomplete="new-password">
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button type="submit" class="btn-primary" id="authSubmit">Войти</button>
+    </form>
+    <div class="auth-links">
+      <button type="button" class="link-btn" id="authToggle">Нет аккаунта? Зарегистрируйтесь</button>
+      <button type="button" class="link-btn" id="backToWelcome">← Назад</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ЭКРАН 3: ПРИЛОЖЕНИЕ ============ -->
+<section id="app" class="screen">
+  <div class="app-shell">
+
+    <header class="topbar glass">
+      <div class="topbar-left" id="profileBtn" title="Открыть профиль">
+        <div class="brand-mark">Г</div>
+        <div>
+          <div class="topbar-title">Гараж</div>
+          <div class="topbar-user" id="topbarUser">@—</div>
+        </div>
+      </div>
+      <button class="btn-ghost" id="logoutBtn">Выйти</button>
+    </header>
+
+    <nav class="tabs glass">
+      <button class="tab-btn active" data-tab="repairs">Ремонт</button>
+      <button class="tab-btn" data-tab="parts">Запчасти</button>
+      <button class="tab-btn" data-tab="cars">Автомобили</button>
+      <button class="tab-btn" data-tab="search">Поиск</button>
+      <button class="tab-btn" data-tab="report">Отчёт</button>
+    </nav>
+
+    <div class="car-tabs glass" id="carTabs"></div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- ---- РЕМОНТ ---- -->
+    <div class="tab-content active" id="tab-repairs">
+      <div class="glass card">
+        <div class="card-head">Новый ремонт <span class="card-sub" id="repairForCar"></span></div>
+        <form id="repairForm" class="entry-form">
+          <div class="field">
+            <label for="repDate">Дата</label>
+            <input type="date" id="repDate" required>
+          </div>
+          <div class="field">
+            <label for="repCost">Стоимость, ₽</label>
+            <input type="number" id="repCost" min="0" step="0.01" inputmode="decimal" placeholder="0">
+          </div>
+          <div class="field full">
+            <label for="repWork">Что сделали</label>
+            <input type="text" id="repWork" required placeholder="Например: замена масла и фильтра">
+          </div>
+          <div class="field full">
+            <label for="repNote">Заметка</label>
+            <input type="text" id="repNote" placeholder="Необязательно">
+          </div>
+          <button type="submit" class="btn-primary">Добавить ремонт</button>
+        </form>
+        <div class="no-car" id="repairNoCar" hidden>Сначала добавьте автомобиль во вкладке «Автомобили»</div>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head">История ремонтов</div>
+        <ul id="repairList" class="list"></ul>
+        <div id="repairEmpty" class="empty" hidden></div>
+      </div>
+    </div>
+
+    <!-- ---- ЗАПЧАСТИ ---- -->
+    <div class="tab-content" id="tab-parts">
+      <div class="glass card">
+        <div class="card-head">Новая запчасть <span class="card-sub" id="partForCar"></span></div>
+        <form id="partForm" class="entry-form">
+          <div class="field">
+            <label for="partDate">Дата</label>
+            <input type="date" id="partDate" required>
+          </div>
+          <div class="field">
+            <label for="partCost">Стоимость, ₽</label>
+            <input type="number" id="partCost" min="0" step="0.01" inputmode="decimal" placeholder="0">
+          </div>
+          <div class="field full">
+            <label for="partName">Название детали</label>
+            <input type="text" id="partName" required placeholder="Например: фильтр масляный MANN">
+          </div>
+          <div class="field">
+            <label for="partQty">Количество</label>
+            <input type="number" id="partQty" min="1" step="1" value="1">
+          </div>
+          <div class="field">
+            <label for="partShop">Магазин</label>
+            <input type="text" id="partShop" placeholder="Необязательно">
+          </div>
+          <button type="submit" class="btn-primary">Добавить запчасть</button>
+        </form>
+        <div class="no-car" id="partNoCar" hidden>Сначала добавьте автомобиль во вкладке «Автомобили»</div>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head">История запчастей</div>
+        <ul id="partList" class="list"></ul>
+        <div id="partEmpty" class="empty" hidden></div>
+      </div>
+    </div>
+
+    <!-- ---- АВТОМОБИЛИ ---- -->
+    <div class="tab-content" id="tab-cars">
+      <div class="glass card">
+        <div class="card-head">Добавить автомобиль</div>
+        <form id="carForm" class="entry-form">
+          <div class="field">
+            <label for="carBrand">Марка</label>
+            <div class="autocomplete-wrap">
+              <input type="text" id="carBrand" required placeholder="Начните вводить: Lada, Toyota…" autocomplete="off">
+              <div class="autocomplete-list" id="brandSuggest"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="carModel">Модель</label>
+            <div class="autocomplete-wrap">
+              <input type="text" id="carModel" required placeholder="Начните вводить модель" autocomplete="off">
+              <div class="autocomplete-list" id="modelSuggest"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="carYear">Год</label>
+            <input type="number" id="carYear" min="1900" max="2100" placeholder="2019">
+          </div>
+          <div class="field">
+            <label for="carPlate">Госномер РФ</label>
+            <input type="text" id="carPlate" required placeholder="А123ВС77" maxlength="9">
+            <div class="hint">1 буква + 3 цифры + 2 буквы + регион</div>
+          </div>
+          <div class="field">
+            <label for="carEngine">Объём двигателя, л</label>
+            <input type="number" id="carEngine" min="0.5" max="10" step="0.1" placeholder="1.6">
+          </div>
+          <div class="field">
+            <label for="carVin">VIN (необязательно)</label>
+            <input type="text" id="carVin" maxlength="17" placeholder="17 символов" style="text-transform:uppercase">
+          </div>
+          <div class="field full">
+            <label for="carColor">Цвет</label>
+            <input type="text" id="carColor" placeholder="Необязательно">
+          </div>
+          <button type="submit" class="btn-primary" id="carSubmitBtn">Добавить автомобиль</button>
+          <input type="hidden" id="carEditId">
+        </form>
+      </div>
+
+      <div class="glass card" style="padding:18px 20px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:14px">Мои автомобили</div>
+        <div id="carsList"></div>
+      </div>
+    </div>
+
+    <!-- ---- ПОИСК ЗАПЧАСТЕЙ ---- -->
+    <div class="tab-content" id="tab-search">
+      <div class="glass card">
+        <div class="card-head">Поиск запчастей по VIN и названию</div>
+        <div class="search-panel">
+          <p class="card-sub" style="margin:0 0 16px">
+            Введите VIN (если сохранён в авто — подставится автоматически) и название детали.
+            Ниже появятся прямые ссылки на поиск в магазинах и контакты.
+          </p>
+          <div class="search-row">
+            <div class="field">
+              <label for="searchVin">VIN</label>
+              <input type="text" id="searchVin" maxlength="17" placeholder="XTA21150053912345" style="text-transform:uppercase">
+            </div>
+            <div class="field">
+              <label for="searchPart">Название запчасти</label>
+              <input type="text" id="searchPart" placeholder="Например: фильтр масляный">
+            </div>
+            <button class="btn-primary" id="searchPartsBtn" style="width:auto;padding:12px 24px">Найти</button>
+          </div>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+
+    <!-- ---- ОТЧЁТ ---- -->
+    <div class="tab-content" id="tab-report">
+      <div class="glass card no-print">
+        <div class="card-head">Отчёт по всем автомобилям</div>
+        <div class="report-toolbar">
+          <button class="btn-primary" id="printBtn" style="width:auto;padding:12px 24px">🖨 Распечатать</button>
+          <button class="btn-mini accent" id="pdfBtn" style="padding:12px 24px">📄 Сохранить в PDF</button>
+          <span class="report-hint">PDF — через диалог печати, выберите «Сохранить как PDF»</span>
+        </div>
+      </div>
+      <div id="reportArea"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ МОДАЛКИ ============ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal glass" id="editModalContent"></div>
+</div>
+
+<div class="modal-overlay" id="profileModal">
+  <div class="modal glass" id="profileModalContent"></div>
+</div>
+
+<script>
+/* ============================================================
+   ХРАНИЛИЩЕ
+   ============================================================ */
+const LS_USERS   = 'garage.users.v2';
+const LS_SESSION = 'garage.session.v2';
+const LS_CAR     = login => 'garage.car.' + login;
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => (
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+));
+
+const moneyFmt = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
+const fmtMoney = n => moneyFmt.format(Number(n) || 0) + ' ₽';
+
+const fmtDate = iso => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+};
+
+const todayISO = () => {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+const genId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const formatDateLong = d => new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/* ============================================================
+   БАЗА АВТО
+   ============================================================ */
+const CAR_DB = {
+  "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"],
+  "Toyota": ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "C-HR", "Supra"],
+  "Volkswagen": ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Jetta", "Arteon"],
+  "Kia": ["Rio", "Sportage", "Ceed", "K5", "Sorento", "Seltos", "Cerato"],
+  "Hyundai": ["Solaris", "Creta", "Tucson", "Santa Fe", "Elantra", "i30", "Sonata"],
+  "BMW": ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "M3", "M5"],
+  "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "V-Class"],
+  "Audi": ["A4", "A6", "A8", "Q5", "Q7", "Q8", "TT", "RS6"],
+  "Nissan": ["Qashqai", "X-Trail", "Almera", "Juke", "Murano", "Patrol", "GT-R"],
+  "Ford": ["Focus", "Mondeo", "Kuga", "Explorer", "Mustang", "Transit", "Fiesta"],
+  "Mazda": ["3", "6", "CX-5", "CX-30", "CX-9", "MX-5"],
+  "Skoda": ["Octavia", "Kodiaq", "Karoq", "Superb", "Rapid", "Fabia"],
+  "Renault": ["Logan", "Duster", "Sandero", "Arkana", "Kaptur", "Megane"],
+  "Honda": ["Civic", "Accord", "CR-V", "Pilot", "Fit", "HR-V"],
+  "Peugeot": ["208", "308", "408", "3008", "5008", "2008"],
+  "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V60"],
+  "Land Rover": ["Discovery", "Range Rover", "Range Rover Sport", "Defender", "Evoque"],
+  "Lexus": ["RX", "NX", "GX", "LX", "ES", "IS", "LS"],
+  "Subaru": ["Forester", "Outback", "Impreza", "XV", "Legacy", "BRZ"],
+  "Chery": ["Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8", "Explore 06"],
+  "Geely": ["Coolray", "Atlas", "Tugella", "Monjaro", "Emgrand"],
+  "Haval": ["Jolion", "F7", "Dargo", "H9", "H5"],
+  "Exeed": ["TXL", "VX", "LX", "RX"],
+  "Tesla": ["Model S", "Model 3", "Model X", "Model Y"]
+};
+
+/* ============================================================
+   ЛОГОТИПЫ
+   ============================================================ */
+function brandLogoUrl(brand) {
+  if (!brand) return '';
+  const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`;
+}
+
+/* ============================================================
+   ВАЛИДАЦИЯ
+   ============================================================ */
+const PLATE_LETTERS = 'АВЕКМНОРСТУХ';
+const PLATE_REGEX = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/;
+
+function normalizePlate(input) {
+  let v = input.toUpperCase().replace(/\s+/g, '');
+  const latToCyr = {A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',Y:'У',X:'Х'};
+  return v.split('').map(ch => latToCyr[ch] || ch).join('');
+}
+const validatePlate = p => PLATE_REGEX.test(normalizePlate(p));
+const validateVin = v => !v || /^[A-HJ-NPR-Z0-9]{17}$/i.test(v.trim());
+
+/* ============================================================
+   СОСТОЯНИЕ
+   ============================================================ */
+let users = {};
+let currentLogin = null;
+let currentCarId = null;
+let authMode = 'login';
+
+/* ============================================================
+   ЭКРАНЫ / ПОЛЬЗОВАТЕЛИ
+   ============================================================ */
+function showScreen(id) { $$('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
+function loadUsers() { try { users = JSON.parse(localStorage.getItem(LS_USERS)) || {}; } catch (e) { users = {}; } }
+function saveUsers() { localStorage.setItem(LS_USERS, JSON.stringify(users)); }
+const currentUser = () => currentLogin ? users[currentLogin] : null;
+
+/* ============================================================
+   АВТОРИЗАЦИЯ
+   ============================================================ */
+function setAuthMode(mode) {
+  authMode = mode;
+  $('#authTitle').textContent = mode === 'login' ? 'Вход' : 'Регистрация';
+  $('#authSub').textContent = mode === 'login' ? 'Войдите, чтобы открыть свой гараж' : 'Придумайте логин и пароль — это займёт секунду';
+  $('#authSubmit').textContent = mode === 'login' ? 'Войти' : 'Создать аккаунт';
+  $('#authPass2Field').hidden = mode === 'login';
+  $('#authToggle').textContent = mode === 'login' ? 'Нет аккаунта? Зарегистрируйтесь' : 'Уже есть аккаунт? Войти';
+  $('#authError').textContent = '';
+  $('#authPass').value = '';
+  $('#authPass2').value = '';
+  $('#authLogin').focus();
+}
+
+function startSession(login) {
+  currentLogin = login;
+  localStorage.setItem(LS_SESSION, login);
+  $('#authForm').reset();
+  enterApp();
+}
+
+function logout() {
+  currentLogin = null;
+  currentCarId = null;
+  localStorage.removeItem(LS_SESSION);
+  showScreen('welcome');
+}
+
+$('#authForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const login = $('#authLogin').value.trim();
+  const pass  = $('#authPass').value;
+  const err   = $('#authError');
+  err.textContent = '';
+
+  if (login.length < 3) { err.textContent = 'Логин — минимум 3 символа'; return; }
+  if (pass.length < 4)  { err.textContent = 'Пароль — минимум 4 символа'; return; }
+
+  if (authMode === 'register') {
+    const pass2 = $('#authPass2').value;
+    if (pass !== pass2) { err.textContent = 'Пароли не совпадают'; return; }
+    if (users[login])   { err.textContent = 'Такой логин уже занят'; return; }
+    users[login] = { password: pass, createdAt: Date.now(), cars: [], repairs: [], parts: [] };
+    saveUsers();
+    startSession(login);
+  } else {
+    if (!users[login])                { err.textContent = 'Пользователь не найден'; return; }
+    if (users[login].password !== pass) { err.textContent = 'Неверный пароль'; return; }
+    startSession(login);
+  }
+});
+
+$('#authToggle').addEventListener('click', () => setAuthMode(authMode === 'login' ? 'register' : 'login'));
+$('#backToWelcome').addEventListener('click', () => showScreen('welcome'));
+$('#startBtn').addEventListener('click', () => {
+  setAuthMode(Object.keys(users).length ? 'login' : 'register');
+  showScreen('auth');
+});
+$('#logoutBtn').addEventListener('click', logout);
+
+/* ============================================================
+   ВХОД В ПРИЛОЖЕНИЕ
+   ============================================================ */
+function enterApp() {
+  const user = currentUser();
+  const savedCar = localStorage.getItem(LS_CAR(currentLogin));
+
+  if (user.cars.length) {
+    currentCarId = user.cars.find(c => c.id === savedCar) ? savedCar : user.cars[0].id;
+    localStorage.setItem(LS_CAR(currentLogin), currentCarId);
+  } else {
+    currentCarId = null;
+  }
+
+  $('#topbarUser').textContent = '@' + currentLogin;
+  $('#repDate').value  = todayISO();
+  $('#partDate').value = todayISO();
+
+  renderAll();
+  switchTab(user.cars.length ? 'repairs' : 'cars');
+  showScreen('app');
+}
+
+/* ============================================================
+   ВСПОМОГАТЕЛЬНОЕ
+   ============================================================ */
+function selectedCar() {
+  const u = currentUser();
+  return u ? u.cars.find(c => c.id === currentCarId) : null;
+}
+
+function carLabel(car) {
+  return [car.brand, car.model].filter(Boolean).join(' ') || 'Автомобиль';
+}
+
+function carStats(carId) {
+  const u = currentUser();
+  const repairs = u.repairs.filter(r => r.carId === carId);
+  const parts   = u.parts.filter(p => p.carId === carId);
+  const repairSum = repairs.reduce((s, r) => s + (Number(r.cost) || 0), 0);
+  const partsSum  = parts.reduce((s, p) => s + (Number(p.cost) || 0), 0);
+  return { repairs, parts, repairSum, partsSum, total: repairSum + partsSum };
+}
+
+/* ============================================================
+   АВТОДОПОЛНЕНИЕ
+   ============================================================ */
+function setupAutocomplete(inputEl, listEl, getSuggestions, onSelect) {
+  let activeIdx = -1;
+  const close = () => { listEl.classList.remove('open'); activeIdx = -1; };
+
+  function render(items) {
+    if (!items.length) { close(); return; }
+    activeIdx = -1;
+    listEl.innerHTML = items.map((item, i) =>
+      `<div class="autocomplete-item" data-idx="${i}">${esc(item)}</div>`
+    ).join('');
+    listEl.classList.add('open');
+    listEl.querySelectorAll('.autocomplete-item').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        onSelect(el.textContent);
+        close();
+      });
+    });
+  }
+
+  inputEl.addEventListener('input', () => {
+    const val = inputEl.value.trim().toLowerCase();
+    if (!val) { close(); return; }
+    render(getSuggestions(val).slice(0, 8));
+  });
+
+  inputEl.addEventListener('keydown', e => {
+    if (!listEl.classList.contains('open')) return;
+    const items = listEl.querySelectorAll('.autocomplete-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      onSelect(items[activeIdx].textContent);
+      close();
+    } else if (e.key === 'Escape') {
+      close();
+    }
+  });
+
+  inputEl.addEventListener('blur', () => setTimeout(close, 150));
+}
+
+setupAutocomplete(
+  $('#carBrand'), $('#brandSuggest'),
+  val => Object.keys(CAR_DB).filter(b => b.toLowerCase().includes(val)),
+  val => { $('#carBrand').value = val; $('#carModel').value = ''; }
+);
+setupAutocomplete(
+  $('#carModel'), $('#modelSuggest'),
+  val => {
+    const brand = $('#carBrand').value.trim();
+    return (CAR_DB[brand] || Object.values(CAR_DB).flat()).filter(m => m.toLowerCase().includes(val));
+  },
+  val => { $('#carModel').value = val; }
+);
+
+/* ============================================================
+   РЕНДЕР: ВКЛАДКИ МАШИН
+   ============================================================ */
+function renderCarTabs() {
+  const u = currentUser();
+  const wrap = $('#carTabs');
+
+  if (!u.cars.length) {
+    wrap.innerHTML = '<div class="car-empty">Нет автомобилей — добавьте первый во вкладке «Автомобили»</div>';
+    return;
+  }
+
+  wrap.innerHTML = u.cars.map(car => `
+    <button class="car-tab ${car.id === currentCarId ? 'active' : ''}" data-car="${esc(car.id)}">
+      <img class="car-tab-logo" src="${brandLogoUrl(car.brand)}" alt="" onerror="this.style.display='none'">
+      <span>${esc(carLabel(car))}</span>
+      ${car.plate ? `<span class="car-tab-plate">${esc(car.plate)}</span>` : ''}
+    </button>
+  `).join('');
+}
+
+/* ============================================================
+   РЕНДЕР: СТАТИСТИКА
+   ============================================================ */
+function renderStats() {
+  const row = $('#statsRow');
+  const car = selectedCar();
+  if (!car) { row.innerHTML = ''; row.style.display = 'none'; return; }
+
+  row.style.display = 'grid';
+  const s = carStats(car.id);
+  row.innerHTML = `
+    <div class="stat-card glass"><div class="stat-label">Потрачено</div><div class="stat-value">${fmtMoney(s.total)}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Ремонтов</div><div class="stat-value">${s.repairs.length}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Запчастей</div><div class="stat-value">${s.parts.length}</div></div>
+  `;
+}
+
+/* ============================================================
+   РЕНДЕР: РЕМОНТЫ
+   ============================================================ */
+function renderRepairs() {
+  const car = selectedCar();
+  const list  = $('#repairList');
+  const empty = $('#repairEmpty');
+  if (!car) { list.innerHTML = ''; empty.hidden = true; return; }
+
+  const items = currentUser().repairs.filter(r => r.carId === car.id)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
+
+  if (!items.length) {
+    list.innerHTML = '';
+    empty.hidden = false;
+    empty.textContent = 'Ремонтов пока нет — добавьте первый выше.';
+    return;
+  }
+
+  empty.hidden = true;
+  list.innerHTML = items.map(r => `
+    <li class="record">
+      <div class="r-date">${esc(fmtDate(r.date))}</div>
+      <div class="r-body">
+        <div class="r-title">${esc(r.work)}</div>
+        ${r.note ? `<div class="r-note">${esc(r.note)}</div>` : ''}
+      </div>
+      <div class="r-cost">${fmtMoney(r.cost)}</div>
+      <div class="r-actions">
+        <button class="r-edit" data-edit-repair="${esc(r.id)}" title="Редактировать">✎</button>
+        <button class="r-del" data-del-repair="${esc(r.id)}" title="Удалить">✕</button>
+      </div>
+    </li>
+  `).join('');
+}
+
+/* ============================================================
+   РЕНДЕР: ЗАПЧАСТИ
+   ============================================================ */
+function renderParts() {
+  const car = selectedCar();
+  const list  = $('#partList');
+  const empty = $('#partEmpty');
+  if (!car) { list.innerHTML = ''; empty.hidden = true; return; }
+
+  const items = currentUser().parts.filter(p => p.carId === car.id)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
+
+  if (!items.length) {
+    list.innerHTML = '';
+    empty.hidden = false;
+    empty.textContent = 'Запчастей пока нет — добавьте первую выше.';
+    return;
+  }
+
+  empty.hidden = true;
+  list.innerHTML = items.map(p => `
+    <li class="record">
+      <div class="r-date">${esc(fmtDate(p.date))}</div>
+      <div class="r-body">
+        <div class="r-title">${esc(p.name)}${Number(p.qty) > 1 ? `<span class="qty-badge">×${esc(p.qty)}</span>` : ''}</div>
+        ${p.shop ? `<div class="r-note">Магазин: ${esc(p.shop)}</div>` : ''}
+      </div>
+      <div class="r-cost">${fmtMoney(p.cost)}</div>
+      <div class="r-actions">
+        <button class="r-del" data-del-part="${esc(p.id)}" title="Удалить">✕</button>
+      </div>
+    </li>
+  `).join('');
+}
+
+/* ============================================================
+   РЕНДЕР: АВТОМОБИЛИ
+   ============================================================ */
+function renderCars() {
+  const u = currentUser();
+  const wrap = $('#carsList');
+  if (!u.cars.length) {
+    wrap.innerHTML = '<div class="empty">Пока нет автомобилей. Добавьте первый в форме выше.</div>';
+    return;
+  }
+
+  wrap.innerHTML = u.cars.map(car => {
+    const s = carStats(car.id);
+    const active = car.id === currentCarId;
+    const sub = [
+      car.year && car.year + ' г.',
+      car.engine && car.engine + ' л',
+      car.plate,
+      car.color
+    ].filter(Boolean).map(esc).join(' · ') || '—';
+
+    return `
+      <div class="car-card glass ${active ? 'active' : ''}">
+        <div class="car-card-head">
+          <div class="car-avatar">
+            <img src="${brandLogoUrl(car.brand)}" alt="${esc(car.brand)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+            <span class="letter" style="display:none">${esc((car.brand || '?')[0].toUpperCase())}</span>
+          </div>
+          <div class="car-card-info">
+            <div class="car-card-title">${esc(carLabel(car))}</div>
+            <div class="car-card-sub">${sub}</div>
+          </div>
+          ${active ? '<span class="badge-active">Выбран</span>' : ''}
+        </div>
+        <div class="car-card-stats">
+          <div><span>Потрачено</span><b>${fmtMoney(s.total)}</b></div>
+          <div><span>Ремонтов</span><b>${s.repairs.length}</b></div>
+          <div><span>Запчастей</span><b>${s.parts.length}</b></div>
+          <div><span>VIN</span><b>${car.vin ? esc(car.vin.slice(-6)) + '…' : '—'}</b></div>
+        </div>
+        <div class="car-card-actions">
+          <button class="btn-mini" data-select-car="${esc(car.id)}">${active ? 'Выбран' : 'Выбрать'}</button>
+          <button class="btn-mini accent" data-edit-car="${esc(car.id)}">Редактировать</button>
+          <button class="btn-mini danger" data-del-car="${esc(car.id)}">Удалить</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============================================================
+   ФОРМЫ
+   ============================================================ */
+function updateFormsState() {
+  const car = selectedCar();
+  $('#repairForm').hidden  = !car;
+  $('#repairNoCar').hidden = !!car;
+  $('#partForm').hidden    = !car;
+  $('#partNoCar').hidden   = !!car;
+  $('#repairForCar').textContent = car ? 'для ' + carLabel(car) : '';
+  $('#partForCar').textContent   = car ? 'для ' + carLabel(car) : '';
+}
+
+/* ============================================================
+   ОБЩИЙ РЕНДЕР
+   ============================================================ */
+function renderAll() {
+  renderCarTabs();
+  renderStats();
+  renderRepairs();
+  renderParts();
+  renderCars();
+  updateFormsState();
+}
+
+/* ============================================================
+   ТАБЫ
+   ============================================================ */
+function switchTab(name) {
+  $$('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $$('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+
+  if (name === 'search') {
+    const car = selectedCar();
+    if (car && car.vin) $('#searchVin').value = car.vin;
+  }
+  if (name === 'report') {
+    renderReport();
+  }
+}
+$$('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+/* ============================================================
+   ПЕРЕКЛЮЧЕНИЕ МАШИНЫ
+   ============================================================ */
+$('#carTabs').addEventListener('click', e => {
+  const btn = e.target.closest('[data-car]');
+  if (!btn) return;
+  currentCarId = btn.dataset.car;
+  localStorage.setItem(LS_CAR(currentLogin), currentCarId);
+  renderAll();
+});
+
+/* ============================================================
+   АВТОМОБИЛЬ: ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ
+   ============================================================ */
+$('#carForm').addEventListener('submit', e => {
+  e.preventDefault();
+
+  const brand = $('#carBrand').value.trim();
+  const model = $('#carModel').value.trim();
+  const plate = normalizePlate($('#carPlate').value.trim());
+  const vin   = $('#carVin').value.trim().toUpperCase();
+
+  if (!brand || !model) return;
+  if (!validatePlate(plate)) { alert('Неверный формат госномера. Пример: А123ВС77'); return; }
+  if (!validateVin(vin))     { alert('VIN должен содержать 17 символов (без I, O, Q)'); return; }
+
+  const u = currentUser();
+  const editId = $('#carEditId').value;
+  const carData = {
+    brand, model,
+    year:   $('#carYear').value.trim(),
+    plate,
+    engine: $('#carEngine').value.trim(),
+    vin,
+    color:  $('#carColor').value.trim()
+  };
+
+  if (editId) {
+    const car = u.cars.find(c => c.id === editId);
+    if (car) Object.assign(car, carData);
+  } else {
+    const car = { id: genId('c'), ...carData };
+    u.cars.push(car);
+    if (!currentCarId) {
+      currentCarId = car.id;
+      localStorage.setItem(LS_CAR(currentLogin), currentCarId);
+    }
+  }
+
+  saveUsers();
+  resetCarForm();
+  renderAll();
+});
+
+function resetCarForm() {
+  $('#carForm').reset();
+  $('#carEditId').value = '';
+  $('#carSubmitBtn').textContent = 'Добавить автомобиль';
+}
+
+$('#carsList').addEventListener('click', e => {
+  const selectBtn = e.target.closest('[data-select-car]');
+  if (selectBtn) {
+    currentCarId = selectBtn.dataset.selectCar;
+    localStorage.setItem(LS_CAR(currentLogin), currentCarId);
+    renderAll();
+    switchTab('repairs');
+    return;
+  }
+
+  const editBtn = e.target.closest('[data-edit-car]');
+  if (editBtn) {
+    const car = currentUser().cars.find(c => c.id === editBtn.dataset.editCar);
+    if (!car) return;
+    $('#carEditId').value = car.id;
+    $('#carBrand').value  = car.brand || '';
+    $('#carModel').value  = car.model || '';
+    $('#carYear').value   = car.year || '';
+    $('#carPlate').value  = car.plate || '';
+    $('#carEngine').value = car.engine || '';
+    $('#carVin').value    = car.vin || '';
+    $('#carColor').value  = car.color || '';
+    $('#carSubmitBtn').textContent = 'Сохранить изменения';
+    switchTab('cars');
+    $('#carBrand').focus();
+    return;
+  }
+
+  const delBtn = e.target.closest('[data-del-car]');
+  if (delBtn) {
+    const id = delBtn.dataset.delCar;
+    if (!confirm('Удалить автомобиль и всю его историю?')) return;
+    const u = currentUser();
+    u.cars    = u.cars.filter(c => c.id !== id);
+    u.repairs = u.repairs.filter(r => r.carId !== id);
+    u.parts   = u.parts.filter(p => p.carId !== id);
+    if (currentCarId === id) {
+      currentCarId = u.cars[0]?.id || null;
+      if (currentCarId) localStorage.setItem(LS_CAR(currentLogin), currentCarId);
+      else localStorage.removeItem(LS_CAR(currentLogin));
+    }
+    saveUsers();
+    renderAll();
+  }
+});
+
+/* ============================================================
+   РЕМОНТ: ДОБАВЛЕНИЕ
+   ============================================================ */
+$('#repairForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const car = selectedCar();
+  if (!car) return;
+  const work = $('#repWork').value.trim();
+  if (!work) return;
+
+  currentUser().repairs.push({
+    id: genId('r'),
+    carId: car.id,
+    date: $('#repDate').value || todayISO(),
+    work,
+    cost: parseFloat($('#repCost').value) || 0,
+    note: $('#repNote').value.trim()
+  });
+  saveUsers();
+
+  $('#repWork').value = '';
+  $('#repCost').value = '';
+  $('#repNote').value = '';
+  $('#repDate').value = todayISO();
+  renderAll();
+});
+
+/* ============================================================
+   РЕМОНТ: РЕДАКТИРОВАНИЕ / УДАЛЕНИЕ
+   ============================================================ */
+$('#repairList').addEventListener('click', e => {
+  const editBtn = e.target.closest('[data-edit-repair]');
+  if (editBtn) {
+    const rec = currentUser().repairs.find(r => r.id === editBtn.dataset.editRepair);
+    if (!rec) return;
+    $('#editModalContent').innerHTML = `
+      <h3>Редактировать ремонт</h3>
+      <form id="modalRepairForm" class="entry-form">
+        <div class="field"><label>Дата</label><input type="date" id="mRepDate" value="${esc(rec.date)}" required></div>
+        <div class="field"><label>Стоимость, ₽</label><input type="number" id="mRepCost" min="0" step="0.01" value="${esc(rec.cost)}"></div>
+        <div class="field full"><label>Что сделали</label><input type="text" id="mRepWork" value="${esc(rec.work)}" required></div>
+        <div class="field full"><label>Заметка</label><input type="text" id="mRepNote" value="${esc(rec.note || '')}"></div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Сохранить</button>
+          <button type="button" class="btn-ghost" data-close-modal>Отмена</button>
+        </div>
+      </form>
+    `;
+    $('#editModal').classList.add('open');
+    $('#modalRepairForm').addEventListener('submit', ev => {
+      ev.preventDefault();
+      rec.date = $('#mRepDate').value;
+      rec.cost = parseFloat($('#mRepCost').value) || 0;
+      rec.work = $('#mRepWork').value.trim();
+      rec.note = $('#mRepNote').value.trim();
+      saveUsers();
+      $('#editModal').classList.remove('open');
+      renderAll();
+    });
+    return;
+  }
+
+  const delBtn = e.target.closest('[data-del-repair]');
+  if (delBtn) {
+    currentUser().repairs = currentUser().repairs.filter(r => r.id !== delBtn.dataset.delRepair);
+    saveUsers();
+    renderAll();
+  }
+});
+
+/* ============================================================
+   ЗАПЧАСТЬ: ДОБАВЛЕНИЕ / УДАЛЕНИЕ
+   ============================================================ */
+$('#partForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const car = selectedCar();
+  if (!car) return;
+  const name = $('#partName').value.trim();
+  if (!name) return;
+
+  currentUser().parts.push({
+    id: genId('p'),
+    carId: car.id,
+    date: $('#partDate').value || todayISO(),
+    name,
+    cost: parseFloat($('#partCost').value) || 0,
+    qty: Math.max(1, parseInt($('#partQty').value, 10) || 1),
+    shop: $('#partShop').value.trim()
+  });
+  saveUsers();
+
+  $('#partName').value = '';
+  $('#partCost').value = '';
+  $('#partShop').value = '';
+  $('#partQty').value  = '1';
+  $('#partDate').value = todayISO();
+  renderAll();
+});
+
+$('#partList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-del-part]');
+  if (!btn) return;
+  currentUser().parts = currentUser().parts.filter(p => p.id !== btn.dataset.delPart);
+  saveUsers();
+  renderAll();
+});
+
+/* ============================================================
+   ПОИСК ЗАПЧАСТЕЙ
+   ============================================================ */
+const SHOPS = [
+  { name: 'Autopiter', site: 'https://autopiter.ru', phone: '+7 (925) 357-88-26', hours: 'Пн–Пт 10:00–21:00, Сб–Вс 10:00–20:00', searchUrl: q => `https://autopiter.ru/search?q=${encodeURIComponent(q)}` },
+  { name: 'Emex', site: 'https://www.emex.ru', phone: '+7 (495) 799-55-66', hours: 'Круглосуточно (склад)', searchUrl: q => `https://www.emex.ru/search?q=${encodeURIComponent(q)}` },
+  { name: 'Exist', site: 'https://exist.ru', phone: '+7 (495) 780-00-00', hours: 'Пн–Пт 09:00–21:00, Сб–Вс 10:00–18:00', searchUrl: q => `https://exist.ru/search/?q=${encodeURIComponent(q)}` },
+  { name: 'ZZap', site: 'https://zzap.ru', phone: '+7 (495) 988-88-88', hours: 'Пн–Вс 09:00–21:00', searchUrl: q => `https://zzap.ru/search/?q=${encodeURIComponent(q)}` },
+  { name: 'Avito Запчасти', site: 'https://avito.ru', phone: '—', hours: 'Круглосуточно', searchUrl: q => `https://avito.ru/rossiya/zapchasti_i_aksessuary?q=${encodeURIComponent(q)}` },
+  { name: 'Мир запчастей России', site: 'https://mirzap.ru', phone: '+7 (495) 668-12-59', hours: 'Пн–Вс 09:00–21:00', searchUrl: q => `https://mirzap.ru/search/?q=${encodeURIComponent(q)}` }
+];
+
+$('#searchPartsBtn').addEventListener('click', () => {
+  const vin  = $('#searchVin').value.trim().toUpperCase();
+  const part = $('#searchPart').value.trim();
+  const out  = $('#searchResults');
+
+  if (!vin && !part) { out.innerHTML = '<div class="search-empty">Введите VIN или название запчасти.</div>'; return; }
+  if (vin && !validateVin(vin)) { out.innerHTML = '<div class="search-empty" style="color:#fca5a5">VIN должен содержать 17 символов (без I, O, Q).</div>'; return; }
+
+  const query = [vin, part].filter(Boolean).join(' ');
+  const links = SHOPS.map(s => `<a class="search-link-btn" href="${s.searchUrl(query)}" target="_blank" rel="noopener">🔍 ${esc(s.name)}</a>`).join('');
+  const shopsHtml = SHOPS.map(s => `
+    <div class="shop-card">
+      <div class="shop-name">${esc(s.name)}</div>
+      <div class="shop-meta">
+        📞 ${esc(s.phone)}<br>
+        🕐 ${esc(s.hours)}<br>
+        🌐 <a href="${s.site}" target="_blank" rel="noopener">${esc(s.site.replace('https://', ''))}</a>
+      </div>
+    </div>
+  `).join('');
+
+  out.innerHTML = `
+    <div class="search-links">${links}</div>
+    <div style="margin-top:18px;font-size:13px;color:var(--muted)">Прямые ссылки на поиск: <b>${esc(query)}</b></div>
+    <div style="margin-top:14px">${shopsHtml}</div>
+  `;
+});
+
+/* ============================================================
+   ПРОФИЛЬ
+   ============================================================ */
+function openProfile() {
+  const u = currentUser();
+  if (!u) return;
+
+  const created = u.createdAt ? formatDateLong(u.createdAt) : '—';
+  let totalAll = 0;
+  u.cars.forEach(c => totalAll += carStats(c.id).total);
+
+  const carsHtml = u.cars.length
+    ? u.cars.map(car => {
+        const s = carStats(car.id);
+        return `
+          <div class="profile-car">
+            <img class="profile-car-logo" src="${brandLogoUrl(car.brand)}" alt="" onerror="this.style.display='none'">
+            <div class="profile-car-info">
+              <div class="profile-car-name">${esc(carLabel(car))}</div>
+              <div class="profile-car-sub">${[car.plate, car.year && car.year + ' г.', car.engine && car.engine + ' л'].filter(Boolean).join(' · ')}</div>
+            </div>
+            <div class="profile-car-stats">
+              <div><b>${fmtMoney(s.total)}</b></div>
+              <div class="profile-car-stats-sub">${s.repairs.length} рем. · ${s.parts.length} зап.</div>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : '<div class="profile-empty">Нет автомобилей</div>';
+
+  $('#profileModalContent').innerHTML = `
+    <h3>Профиль</h3>
+    <div class="profile-head">
+      <div class="profile-avatar">${esc(currentLogin[0].toUpperCase())}</div>
+      <div>
+        <div class="profile-name">@${esc(currentLogin)}</div>
+        <div class="profile-meta">Аккаунт создан ${esc(created)}</div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div><div class="profile-stat-label">Потрачено</div><div class="profile-stat-value">${fmtMoney(totalAll)}</div></div>
+      <div><div class="profile-stat-label">Авто</div><div class="profile-stat-value">${u.cars.length}</div></div>
+      <div><div class="profile-stat-label">Ремонтов</div><div class="profile-stat-value">${u.repairs.length}</div></div>
+      <div><div class="profile-stat-label">Запчастей</div><div class="profile-stat-value">${u.parts.length}</div></div>
+    </div>
+    <div class="profile-section-title">Мои автомобили</div>
+    <div class="profile-cars">${carsHtml}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn-ghost neutral" data-close-modal style="flex:1;padding:14px">Закрыть</button>
+    </div>
+  `;
+  $('#profileModal').classList.add('open');
+}
+
+$('#profileBtn').addEventListener('click', openProfile);
+
+/* ============================================================
+   ОТЧЁТ
+   ============================================================ */
+function renderReport() {
+  const u = currentUser();
+  const area = $('#reportArea');
+  if (!u) return;
+
+  const created = u.createdAt ? formatDateLong(u.createdAt) : '—';
+  const now = formatDateLong(Date.now());
+
+  let totalAll = 0, totalRep = 0, totalPart = 0;
+  u.cars.forEach(car => {
+    const s = carStats(car.id);
+    totalAll += s.total; totalRep += s.repairs.length; totalPart += s.parts.length;
+  });
+
+  let html = `
+    <div class="report">
+      <div class="report-header">
+        <div class="report-brand">
+          <div class="report-logo">Г</div>
+          <div>
+            <h1>Гараж</h1>
+            <div class="report-sub">Отчёт об обслуживании автомобилей</div>
+          </div>
+        </div>
+        <div class="report-meta">
+          <div><strong>Пользователь:</strong> @${esc(currentLogin)}</div>
+          <div><strong>Аккаунт создан:</strong> ${esc(created)}</div>
+          <div><strong>Отчёт сформирован:</strong> ${esc(now)}</div>
+        </div>
+      </div>
+
+      <div class="report-summary">
+        <div class="report-summary-card"><div class="report-summary-label">Всего потрачено</div><div class="report-summary-value">${fmtMoney(totalAll)}</div></div>
+        <div class="report-summary-card"><div class="report-summary-label">Автомобилей</div><div class="report-summary-value">${u.cars.length}</div></div>
+        <div class="report-summary-card"><div class="report-summary-label">Ремонтов</div><div class="report-summary-value">${totalRep}</div></div>
+        <div class="report-summary-card"><div class="report-summary-label">Запчастей</div><div class="report-summary-value">${totalPart}</div></div>
+      </div>
+
+      <h2>Автомобили</h2>
+  `;
+
+  if (!u.cars.length) {
+    html += `<div class="report-empty">Автомобили не добавлены</div>`;
+  } else {
+    u.cars.forEach(car => {
+      const s = carStats(car.id);
+      const details = [
+        car.year && car.year + ' г.',
+        car.engine && car.engine + ' л',
+        car.plate,
+        car.color,
+        car.vin && 'VIN ' + car.vin
+      ].filter(Boolean).map(esc).join(' · ') || '—';
+
+      const repRows = s.repairs.length
+        ? s.repairs.sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(r => `
+            <tr>
+              <td>${esc(fmtDate(r.date))}</td>
+              <td>${esc(r.work)}</td>
+              <td>${esc(r.note || '—')}</td>
+              <td class="num">${fmtMoney(r.cost)}</td>
+            </tr>`).join('')
+        : '';
+
+      const partRows = s.parts.length
+        ? s.parts.sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(p => `
+            <tr>
+              <td>${esc(fmtDate(p.date))}</td>
+              <td>${esc(p.name)}</td>
+              <td class="num">${esc(p.qty || 1)}</td>
+              <td>${esc(p.shop || '—')}</td>
+              <td class="num">${fmtMoney(p.cost)}</td>
+            </tr>`).join('')
+        : '';
+
+      html += `
+        <div class="report-car">
+          <div class="report-car-head">
+            <img class="report-car-logo" src="${brandLogoUrl(car.brand)}" alt="" onerror="this.style.display='none'">
+            <div class="report-car-title">
+              <h3>${esc(carLabel(car))}</h3>
+              <div class="report-car-details">${details}</div>
+            </div>
+            <div class="report-car-total">${fmtMoney(s.total)}</div>
+          </div>
+
+          <h4>Ремонты (${s.repairs.length})</h4>
+          ${s.repairs.length ? `
+            <table class="report-table">
+              <thead><tr><th>Дата</th><th>Работа</th><th>Заметка</th><th class="num">Стоимость</th></tr></thead>
+              <tbody>${repRows}</tbody>
+              <tfoot><tr><td colspan="3">Итого ремонтов</td><td class="num">${fmtMoney(s.repairSum)}</td></tr></tfoot>
+            </table>
+          ` : `<div class="report-empty-small">Ремонтов не зафиксировано</div>`}
+
+          <h4>Запчасти (${s.parts.length})</h4>
+          ${s.parts.length ? `
+            <table class="report-table">
+              <thead><tr><th>Дата</th><th>Название</th><th class="num">Кол-во</th><th>Магазин</th><th class="num">Стоимость</th></tr></thead>
+              <tbody>${partRows}</tbody>
+              <tfoot><tr><td colspan="4">Итого запчастей</td><td class="num">${fmtMoney(s.partsSum)}</td></tr></tfoot>
+            </table>
+          ` : `<div class="report-empty-small">Запчастей не зафиксировано</div>`}
+        </div>
+      `;
+    });
+  }
+
+  html += `
+      <div class="report-foot">
+        Документ сформирован автоматически в приложении «Гараж» · ${esc(now)}
+      </div>
+    </div>
+  `;
+
+  area.innerHTML = html;
+}
+
+/* ============================================================
+   ПЕЧАТЬ / PDF
+   ============================================================ */
+$('#printBtn').addEventListener('click', () => window.print());
+$('#pdfBtn').addEventListener('click', () => window.print());
+
+/* ============================================================
+   МОДАЛКИ: ЗАКРЫТИЕ
+   ============================================================ */
+$('#editModal').addEventListener('click', e => {
+  if (e.target.id === 'editModal' || e.target.closest('[data-close-modal]')) {
+    $('#editModal').classList.remove('open');
+  }
+});
+$('#profileModal').addEventListener('click', e => {
+  if (e.target.id === 'profileModal' || e.target.closest('[data-close-modal]')) {
+    $('#profileModal').classList.remove('open');
+  }
+});
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+loadUsers();
+const savedSession = localStorage.getItem(LS_SESSION);
+if (savedSession && users[savedSession]) {
+  currentLogin = savedSession;
+  enterApp();
+} else {
+  showScreen('welcome');
+}
+</script>
+</body>
+</html>
