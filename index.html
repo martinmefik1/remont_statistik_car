@@ -5,76 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Гараж — цифровой дневник автомобиля</title>
 <link rel="icon" type="image/png" href="Favicon-32x32.png">
-<!-- Библиотека для скачивания PDF -->
+<!-- Подключаем Supabase и библиотеку для PDF -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
-    --bg: #121212;
-    --surface: #1e1e1e;
-    --surface-hover: #2a2a2a;
-    --yellow: #ffcc00;
-    --yellow-dim: rgba(255, 204, 0, 0.15);
-    --text: #ffffff;
-    --text-muted: #888888;
-    --danger: #ff4444;
-    --radius: 20px;
+    --bg: #121212; --surface: #1e1e1e; --surface-hover: #2a2a2a;
+    --yellow: #ffcc00; --text: #ffffff; --text-muted: #888888;
+    --danger: #ff4444; --radius: 20px;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
-  }
-
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
   ::-webkit-scrollbar { width: 0; height: 0; display: none; }
   * { scrollbar-width: none; -ms-overflow-style: none; }
 
-  /* ---------- ЭКРАНЫ АВТОРИЗАЦИИ И ПРИВЕТСТВИЯ ---------- */
-  .auth-screen {
-    position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    padding: 20px; overflow-y: auto;
-  }
+  /* Стили экранов авторизации */
+  .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
   .auth-screen.active { display: flex; animation: fadeIn 0.4s ease; }
-  
-  .auth-card {
-    background: var(--surface); padding: 40px 30px; border-radius: 24px;
-    width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  }
+  .auth-card { background: var(--surface); padding: 40px 30px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
   .auth-logo { width: 80px; height: 80px; margin-bottom: 20px; object-fit: contain; }
   .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
-  
-  .auth-input {
-    width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px;
-    margin-bottom: 12px; outline: none; transition: border 0.2s;
-  }
+  .auth-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: border 0.2s; }
   .auth-input:focus { border-color: var(--yellow); }
-  .auth-btn {
-    width: 100%; background: var(--yellow); color: #000; border: none;
-    padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700;
-    cursor: pointer; margin-top: 10px; margin-bottom: 15px;
-  }
-  .auth-link { color: var(--yellow); font-size: 14px; text-decoration: none; cursor: pointer; }
-  .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 16px; }
+  .auth-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; margin-bottom: 15px; }
+  .auth-link { color: var(--yellow); font-size: 14px; text-decoration: none; cursor: pointer; display: inline-block; margin: 5px 0; }
+  .auth-link.muted { color: var(--text-muted); font-size: 12px; }
+  .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 16px; line-height: 1.3; }
   .auth-features { text-align: left; margin: 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
   .auth-features li { margin-bottom: 8px; list-style: none; display: flex; align-items: center; gap: 8px; }
 
-  /* ---------- ОСНОВНОЕ ПРИЛОЖЕНИЕ ---------- */
-  .app-container {
-    width: 100%; max-width: 480px; height: 100vh; display: none;
-    flex-direction: column; background: var(--bg); position: relative;
-    box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: max-width 0.3s ease;
-  }
+  /* Основное приложение */
+  .app-container { width: 100%; max-width: 480px; height: 100vh; display: none; flex-direction: column; background: var(--bg); position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: max-width 0.3s ease; }
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
-
+  
   @media (min-width: 900px) {
     .app-container { max-width: 1100px; box-shadow: none; }
     .main-content { padding: 20px 40px 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-content: start; }
@@ -104,9 +68,7 @@
   .total-amount-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
   .total-amount { font-size: 32px; font-weight: 800; }
   .total-trend { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-  .trend-up { color: #ff4444; }
-  .trend-down { color: #4ade80; }
-  .trend-neutral { color: var(--text-muted); }
+  .trend-up { color: #ff4444; } .trend-down { color: #4ade80; } .trend-neutral { color: var(--text-muted); }
 
   .chart-container { height: 80px; width: 100%; position: relative; }
   .chart-svg { width: 100%; height: 100%; overflow: visible; }
@@ -134,22 +96,11 @@
   .action-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
   .action-btn.delete:hover { color: var(--danger); background: rgba(255,68,68,0.1); }
 
-  .fab-add {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    width: calc(100% - 40px); max-width: 440px; background: var(--yellow);
-    color: #000; border: none; border-radius: 16px; padding: 16px;
-    font-size: 16px; font-weight: 700; cursor: pointer; display: flex;
-    align-items: center; justify-content: center; gap: 8px; z-index: 10;
-    box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3); transition: transform 0.1s;
-  }
+  .fab-add { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--yellow); color: #000; border: none; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 10; box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3); transition: transform 0.1s; }
   .fab-add:active { transform: translateX(-50%) scale(0.98); }
   .fab-add svg { width: 20px; height: 20px; }
 
-  .bottom-nav {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
-    background: #171717; display: flex; justify-content: space-around; align-items: center;
-    border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom); z-index: 20;
-  }
+  .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; background: #171717; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom); z-index: 20; }
   .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 10px; font-weight: 500; background: none; border: none; cursor: pointer; transition: color 0.2s; }
   .nav-item svg { width: 24px; height: 24px; }
   .nav-item.active { color: var(--yellow); }
@@ -158,10 +109,7 @@
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
   .modal-sheet { background: var(--surface); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
-  @media (min-width: 900px) {
-    .modal-overlay { align-items: center; }
-    .modal-sheet { border-radius: 24px; max-width: 500px; animation: scaleIn 0.2s ease; }
-  }
+  @media (min-width: 900px) { .modal-overlay { align-items: center; } .modal-sheet { border-radius: 24px; max-width: 500px; animation: scaleIn 0.2s ease; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   
@@ -171,23 +119,14 @@
 
   .input-group { margin-bottom: 16px; position: relative; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-  .input-group input, .input-group select {
-    width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px;
-    outline: none; transition: border 0.2s;
-  }
+  .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
   .btn-submit { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
 
   /* Кастомный календарь */
   .date-display { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
   .date-display::after { content: '📅'; font-size: 18px; }
-  .custom-calendar {
-    position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-    background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px; padding: 16px; margin-top: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none;
-  }
+  .custom-calendar { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-top: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; }
   .custom-calendar.open { display: block; animation: fadeIn 0.2s ease; }
   .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; }
   .cal-nav { background: none; border: none; color: var(--yellow); font-size: 18px; cursor: pointer; padding: 0 10px; }
@@ -222,13 +161,8 @@
   /* Отчёт */
   .report-controls { background: var(--surface); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
   .report-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  .btn-print, .btn-pdf {
-    background: var(--yellow); color: #000; border: none; padding: 14px;
-    border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
+  .btn-print, .btn-pdf { background: var(--yellow); color: #000; border: none; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-pdf { background: var(--surface-hover); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
-  
   .report-document { background: #fff; color: #000; border-radius: 16px; padding: 30px; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
   .report-document h1 { font-size: 22px; margin-bottom: 5px; }
   .report-header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
@@ -241,10 +175,7 @@
 
   @media print {
     @page { margin: 15mm; }
-    body, .app-container, .main-content, .screen, .report-controls, .header, .bottom-nav, .fab-add, .modal-overlay, .auth-screen {
-      display: block !important; background: #fff !important; color: #000 !important;
-      position: static !important; padding: 0 !important; margin: 0 !important; height: auto !important; overflow: visible !important; max-width: 100% !important; box-shadow: none !important;
-    }
+    body, .app-container, .main-content, .screen, .report-controls, .header, .bottom-nav, .fab-add, .modal-overlay, .auth-screen { display: block !important; background: #fff !important; color: #000 !important; position: static !important; padding: 0 !important; margin: 0 !important; height: auto !important; overflow: visible !important; max-width: 100% !important; box-shadow: none !important; }
     .header, .bottom-nav, .fab-add, .report-controls, .modal-overlay, .auth-screen, .section-header, .total-card, .expense-list { display: none !important; }
     #screen-stats { display: block !important; }
     .report-document { padding: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
@@ -255,7 +186,7 @@
 <body>
 
 <!-- ЭКРАН 1: ПРИВЕТСТВИЕ -->
-<div id="welcome-screen" class="auth-screen">
+<div id="welcome-screen" class="auth-screen active">
   <div class="auth-card">
     <img src="Favicon-32x32.png" alt="Гараж" class="auth-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ffcc00\' stroke-width=\'2\'><path d=\'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\'></path></svg>'">
     <div class="auth-title">Гараж</div>
@@ -268,7 +199,7 @@
       <li>📄 Красивый отчёт в PDF</li>
     </ul>
     <button class="auth-btn" onclick="showAuthScreen()">Создать гараж</button>
-    <div style="font-size: 12px; color: var(--text-muted);">Данные хранятся в вашем браузере</div>
+    <div style="font-size: 12px; color: var(--text-muted);">Данные хранятся в облаке Supabase</div>
   </div>
 </div>
 
@@ -279,12 +210,19 @@
     <div class="auth-title" id="auth-title">Вход</div>
     <div class="auth-sub" id="auth-sub">Войдите, чтобы продолжить</div>
     <div class="auth-error" id="auth-error"></div>
-    <input type="text" id="auth-login" class="auth-input" placeholder="Логин">
+    
+    <input type="text" id="auth-login" class="auth-input" placeholder="Логин (для профиля)" style="display: none;">
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email">
     <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль">
     <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
+    
     <button class="auth-btn" id="auth-submit" onclick="handleAuth()">Войти</button>
-    <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</a>
-    <div style="margin-top: 15px;"><a class="auth-link" style="color:var(--text-muted); font-size:12px;" onclick="showWelcomeScreen()">← Назад</a></div>
+    
+    <div>
+      <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</a><br>
+      <a class="auth-link muted" id="forgot-pass-btn" onclick="resetPassword()">Забыли пароль?</a>
+    </div>
+    <div style="margin-top: 15px;"><a class="auth-link muted" onclick="showWelcomeScreen()">← Назад</a></div>
   </div>
 </div>
 
@@ -296,7 +234,7 @@
       ГАРАЖ
     </div>
     <button class="settings-btn" onclick="switchTab('profile')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
   </header>
 
@@ -321,10 +259,7 @@
         </div>
       </div>
       <div class="home-right">
-        <div class="section-header" style="margin-top: 10px;">
-          <div class="section-title">Последние расходы</div>
-          <a class="section-link" onclick="switchTab('stats')">Все →</a>
-        </div>
+        <div class="section-header" style="margin-top: 10px;"><div class="section-title">Последние расходы</div><a class="section-link" onclick="switchTab('stats')">Все →</a></div>
         <div class="expense-list" id="home-recent-list"></div>
       </div>
     </section>
@@ -340,17 +275,9 @@
     <section id="screen-search" class="screen">
       <div class="section-header" style="margin-top: 10px;"><div class="section-title">Поиск запчастей</div></div>
       <div class="search-panel">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-          Введите VIN (если сохранён в авто — подставится автоматически) и название детали. Ниже появятся прямые ссылки на поиск в магазинах и контакты.
-        </p>
-        <div class="input-group">
-          <label>VIN</label>
-          <input type="text" id="search-vin" maxlength="17" placeholder="XTA21150053912345" style="text-transform:uppercase">
-        </div>
-        <div class="input-group">
-          <label>Название запчасти</label>
-          <input type="text" id="search-part" placeholder="Например: фильтр масляный">
-        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Введите VIN (если сохранён в авто — подставится автоматически) и название детали.</p>
+        <div class="input-group"><label>VIN</label><input type="text" id="search-vin" maxlength="17" placeholder="XTA21150053912345" style="text-transform:uppercase"></div>
+        <div class="input-group"><label>Название запчасти</label><input type="text" id="search-part" placeholder="Например: фильтр масляный"></div>
         <button class="btn-submit" onclick="doSearchParts()">Найти</button>
       </div>
       <div id="search-results"></div>
@@ -360,19 +287,10 @@
     <section id="screen-stats" class="screen">
       <div class="section-header" style="margin-top: 10px;"><div class="section-title">Отчёт</div></div>
       <div class="report-controls">
-        <div class="input-group">
-          <label>Выберите автомобиль</label>
-          <select id="report-car-select" onchange="renderReport()"></select>
-        </div>
+        <div class="input-group"><label>Выберите автомобиль</label><select id="report-car-select" onchange="renderReport()"></select></div>
         <div class="report-buttons">
-          <button class="btn-print" onclick="window.print()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Печать
-          </button>
-          <button class="btn-pdf" onclick="downloadPDF()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Скачать PDF
-          </button>
+          <button class="btn-print" onclick="window.print()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Печать</button>
+          <button class="btn-pdf" onclick="downloadPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Скачать PDF</button>
         </div>
       </div>
       <div id="report-area"></div>
@@ -386,31 +304,29 @@
         <div style="font-size: 20px; font-weight: 700; margin-bottom: 5px;" id="profile-login">@user</div>
         <div style="color: var(--text-muted); font-size: 13px;" id="profile-date">Дата регистрации</div>
       </div>
+
+      <!-- Поддержка -->
+      <div class="total-card" style="margin-top: 15px; padding: 20px; text-align: left;">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 10px; color: var(--text);">Поддержка</div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Возникли вопросы или нашли ошибку? Напишите нам, и мы поможем.</div>
+        <div id="support-email" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 204, 0, 0.1); padding: 10px 14px; border-radius: 10px; color: var(--yellow); cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; width: 100%;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          <span>support.garage.car@gmail.com</span>
+        </div>
+      </div>
+
       <button class="btn-submit" style="background: var(--surface); color: var(--danger); margin-top: 20px;" onclick="logout()">Выйти из аккаунта</button>
     </section>
   </main>
 
-  <button class="fab-add" id="fab-add-btn" onclick="openExpenseModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    Добавить расход
-  </button>
+  <button class="fab-add" id="fab-add-btn" onclick="openExpenseModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Добавить расход</button>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-tab="home" onclick="switchTab('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Главная
-    </button>
-    <button class="nav-item" data-tab="cars" onclick="switchTab('cars')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>Авто
-    </button>
-    <button class="nav-item" data-tab="search" onclick="switchTab('search')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Поиск
-    </button>
-    <button class="nav-item" data-tab="stats" onclick="switchTab('stats')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Отчёт
-    </button>
-    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>Ещё
-    </button>
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Главная</button>
+    <button class="nav-item" data-tab="cars" onclick="switchTab('cars')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>Авто</button>
+    <button class="nav-item" data-tab="search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Поиск</button>
+    <button class="nav-item" data-tab="stats" onclick="switchTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Отчёт</button>
+    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>Ещё</button>
   </nav>
 </div>
 
@@ -420,32 +336,20 @@
     <div class="modal-header"><div class="modal-title" id="exp-modal-title">Новый расход</div><button class="close-btn" onclick="closeModal('expense-modal')">✕</button></div>
     <form id="expense-form">
       <input type="hidden" id="exp-id">
-      <div class="input-group">
-        <label>Категория</label>
-        <select id="exp-category">
-          <option value="fuel">Топливо</option><option value="service">ТО / Ремонт</option><option value="parking">Парковка</option><option value="wash">Мойка</option><option value="tires">Шины / Колёса</option><option value="fine">Штраф</option><option value="other">Другое</option>
-        </select>
-      </div>
+      <div class="input-group"><label>Категория</label><select id="exp-category"><option value="fuel">Топливо</option><option value="service">ТО / Ремонт</option><option value="parking">Парковка</option><option value="wash">Мойка</option><option value="tires">Шины / Колёса</option><option value="fine">Штраф</option><option value="other">Другое</option></select></div>
       <div class="input-group"><label>Сумма (₽)</label><input type="number" id="exp-amount" required placeholder="0" min="0" step="0.01"></div>
       <div class="input-group"><label>Описание (необязательно)</label><input type="text" id="exp-desc" placeholder="Например: замена масла"></div>
       
-      <!-- Кастомный календарь -->
       <div class="input-group" style="position: relative;">
         <label>Дата</label>
         <input type="text" id="exp-date-display" class="date-display" readonly placeholder="Выберите дату">
         <input type="hidden" id="exp-date" required>
         <div class="custom-calendar" id="custom-calendar">
-          <div class="cal-header">
-            <button type="button" class="cal-nav" onclick="changeMonth(-1)">‹</button>
-            <span id="cal-month-year"></span>
-            <button type="button" class="cal-nav" onclick="changeMonth(1)">›</button>
-          </div>
-          <div class="cal-grid" id="cal-grid">
-            <div class="cal-day-name">Пн</div><div class="cal-day-name">Вт</div><div class="cal-day-name">Ср</div><div class="cal-day-name">Чт</div><div class="cal-day-name">Пт</div><div class="cal-day-name">Сб</div><div class="cal-day-name">Вс</div>
-          </div>
+          <div class="cal-header"><button type="button" class="cal-nav" onclick="changeMonth(-1)">‹</button><span id="cal-month-year"></span><button type="button" class="cal-nav" onclick="changeMonth(1)">›</button></div>
+          <div class="cal-grid" id="cal-grid"><div class="cal-day-name">Пн</div><div class="cal-day-name">Вт</div><div class="cal-day-name">Ср</div><div class="cal-day-name">Чт</div><div class="cal-day-name">Пт</div><div class="cal-day-name">Сб</div><div class="cal-day-name">Вс</div></div>
         </div>
       </div>
-
+      
       <div class="input-group"><label>Автомобиль</label><select id="exp-car" required></select></div>
       <button type="submit" class="btn-submit">Сохранить</button>
     </form>
@@ -478,62 +382,35 @@
 </div>
 
 <script>
-  const CAR_DB = {
-    "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"],
-    "Toyota": ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "C-HR", "Supra"],
-    "Volkswagen": ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Jetta", "Arteon"],
-    "Kia": ["Rio", "Sportage", "Ceed", "K5", "Sorento", "Seltos", "Cerato"],
-    "Hyundai": ["Solaris", "Creta", "Tucson", "Santa Fe", "Elantra", "i30", "Sonata"],
-    "BMW": ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "M3", "M5"],
-    "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "V-Class"],
-    "Audi": ["A4", "A6", "A8", "Q5", "Q7", "Q8", "TT", "RS6"],
-    "Nissan": ["Qashqai", "X-Trail", "Almera", "Juke", "Murano", "Patrol", "GT-R"],
-    "Ford": ["Focus", "Mondeo", "Kuga", "Explorer", "Mustang", "Transit", "Fiesta"],
-    "Mazda": ["3", "6", "CX-5", "CX-30", "CX-9", "MX-5"],
-    "Skoda": ["Octavia", "Kodiaq", "Karoq", "Superb", "Rapid", "Fabia"],
-    "Renault": ["Logan", "Duster", "Sandero", "Arkana", "Kaptur", "Megane"],
-    "Honda": ["Civic", "Accord", "CR-V", "Pilot", "Fit", "HR-V"],
-    "Peugeot": ["208", "308", "408", "3008", "5008", "2008"],
-    "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V60"],
-    "Land Rover": ["Discovery", "Range Rover", "Range Rover Sport", "Defender", "Evoque"],
-    "Lexus": ["RX", "NX", "GX", "LX", "ES", "IS", "LS"],
-    "Subaru": ["Forester", "Outback", "Impreza", "XV", "Legacy", "BRZ"],
-    "Chery": ["Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8", "Explore 06"],
-    "Geely": ["Coolray", "Atlas", "Tugella", "Monjaro", "Emgrand"],
-    "Haval": ["Jolion", "F7", "Dargo", "H9", "H5"],
-    "Exeed": ["TXL", "VX", "LX", "RX"],
-    "Tesla": ["Model S", "Model 3", "Model X", "Model Y"]
-  };
+  // ====================================================================
+  // 1. ИНИЦИАЛИЗАЦИЯ SUPABASE
+  // ====================================================================
+  const SUPABASE_URL = 'https://nmbdiqqeaedjsfodzyyj.supabase.co'; 
+  const SUPABASE_ANON_KEY = 'sb_publishable_hTLQG8-5ZajtZj_UDo3fBg_du_DFuMD';
+  
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const CATEGORIES = {
-    fuel: { name: 'Топливо', icon: '<svg viewBox="0 0 24 24"><path d="M3 22h12v-4H3v4zm12-10h-2v4h2v-4zm3-7v4h-2V5h2zm2 0h-2v4h2V5zm-2 4h-2v4h2V9zm2 4h-2v4h2v-4z"/><path d="M5 2h8v14H5z"/></svg>' },
-    service: { name: 'ТО / Ремонт', icon: '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>' },
-    parking: { name: 'Парковка', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>' },
-    wash: { name: 'Мойка', icon: '<svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' },
-    tires: { name: 'Шины', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>' },
-    fine: { name: 'Штраф', icon: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
-    other: { name: 'Другое', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' }
-  };
-
-  const LS_USERS = 'garage.users.v5';
-  const LS_SESSION = 'garage.session.v5';
-  let users = {};
+  // ====================================================================
+  // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И УТИЛИТЫ
+  // ====================================================================
   let currentUser = null;
+  let userCars = [];
+  let userExpenses = [];
   let currentCarId = null;
   let isRegisterMode = false;
 
+  const CAR_DB = { "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"], "Toyota": ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "C-HR", "Supra"], "Volkswagen": ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Jetta", "Arteon"], "Kia": ["Rio", "Sportage", "Ceed", "K5", "Sorento", "Seltos", "Cerato"], "Hyundai": ["Solaris", "Creta", "Tucson", "Santa Fe", "Elantra", "i30", "Sonata"], "BMW": ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "M3", "M5"], "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "V-Class"], "Audi": ["A4", "A6", "A8", "Q5", "Q7", "Q8", "TT", "RS6"], "Nissan": ["Qashqai", "X-Trail", "Almera", "Juke", "Murano", "Patrol", "GT-R"], "Ford": ["Focus", "Mondeo", "Kuga", "Explorer", "Mustang", "Transit", "Fiesta"], "Mazda": ["3", "6", "CX-5", "CX-30", "CX-9", "MX-5"], "Skoda": ["Octavia", "Kodiaq", "Karoq", "Superb", "Rapid", "Fabia"], "Renault": ["Logan", "Duster", "Sandero", "Arkana", "Kaptur", "Megane"], "Honda": ["Civic", "Accord", "CR-V", "Pilot", "Fit", "HR-V"], "Peugeot": ["208", "308", "408", "3008", "5008", "2008"], "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V60"], "Land Rover": ["Discovery", "Range Rover", "Range Rover Sport", "Defender", "Evoque"], "Lexus": ["RX", "NX", "GX", "LX", "ES", "IS", "LS"], "Subaru": ["Forester", "Outback", "Impreza", "XV", "Legacy", "BRZ"], "Chery": ["Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8", "Explore 06"], "Geely": ["Coolray", "Atlas", "Tugella", "Monjaro", "Emgrand"], "Haval": ["Jolion", "F7", "Dargo", "H9", "H5"], "Exeed": ["TXL", "VX", "LX", "RX"], "Tesla": ["Model S", "Model 3", "Model X", "Model Y"] };
+  const CATEGORIES = { fuel: { name: 'Топливо', icon: '<svg viewBox="0 0 24 24"><path d="M3 22h12v-4H3v4zm12-10h-2v4h2v-4zm3-7v4h-2V5h2zm2 0h-2v4h2V5zm-2 4h-2v4h2V9zm2 4h-2v4h2v-4z"/><path d="M5 2h8v14H5z"/></svg>' }, service: { name: 'ТО / Ремонт', icon: '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>' }, parking: { name: 'Парковка', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>' }, wash: { name: 'Мойка', icon: '<svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' }, tires: { name: 'Шины', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>' }, fine: { name: 'Штраф', icon: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' }, other: { name: 'Другое', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' } };
+
   const fmtMoney = n => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(n);
   const fmtDate = iso => { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
-  const genId = () => Math.random().toString(36).substr(2, 9);
-  const getBrandLogo = (brand) => {
-    if (!brand) return '';
-    const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`;
-  };
+  const getBrandLogo = (brand) => { if (!brand) return ''; const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`; };
   const validateVin = v => !v || /^[A-HJ-NPR-Z0-9]{17}$/i.test(v.trim());
-  const validatePlate = p => /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/.test(p.toUpperCase().replace(/\s+/g, ''));
 
-  // --- ЭКРАНЫ ---
+  // ====================================================================
+  // 3. ЭКРАНЫ И АВТОРИЗАЦИЯ
+  // ====================================================================
   function showWelcomeScreen() {
     document.getElementById('welcome-screen').classList.add('active');
     document.getElementById('auth-screen').classList.remove('active');
@@ -545,62 +422,126 @@
     document.getElementById('app-container').classList.remove('active');
     setAuthMode(false);
   }
-
-  // --- АВТОРИЗАЦИЯ ---
-  function loadUsers() { try { users = JSON.parse(localStorage.getItem(LS_USERS)) || {}; } catch(e) { users = {}; } }
-  function saveUsers() { localStorage.setItem(LS_USERS, JSON.stringify(users)); if (currentUser) currentUser = users[currentUser.login]; }
-
   function setAuthMode(isReg) {
     isRegisterMode = isReg;
     document.getElementById('auth-title').textContent = isReg ? 'Регистрация' : 'Вход';
     document.getElementById('auth-sub').textContent = isReg ? 'Создайте аккаунт' : 'Войдите, чтобы продолжить';
     document.getElementById('auth-submit').textContent = isReg ? 'Зарегистрироваться' : 'Войти';
     document.getElementById('auth-toggle').textContent = isReg ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться';
+    
     document.getElementById('auth-pass2').style.display = isReg ? 'block' : 'none';
+    document.getElementById('auth-login').style.display = isReg ? 'block' : 'none';
+    document.getElementById('forgot-pass-btn').style.display = isReg ? 'none' : 'inline-block';
+    
     document.getElementById('auth-error').textContent = '';
   }
-
   function toggleAuthMode() { setAuthMode(!isRegisterMode); }
 
-  function handleAuth() {
+  async function handleAuth() {
     const login = document.getElementById('auth-login').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
     const pass = document.getElementById('auth-pass').value;
     const pass2 = document.getElementById('auth-pass2').value;
     const err = document.getElementById('auth-error');
     err.textContent = '';
-    if (login.length < 3) return err.textContent = 'Логин должен быть не менее 3 символов';
-    if (pass.length < 4) return err.textContent = 'Пароль должен быть не менее 4 символов';
+
+    if (!email || !email.includes('@')) return err.textContent = 'Введите корректный Email';
+    if (pass.length < 6) return err.textContent = 'Пароль должен быть не менее 6 символов';
+
     if (isRegisterMode) {
+      if (login.length < 3) return err.textContent = 'Логин должен быть не менее 3 символов';
       if (pass !== pass2) return err.textContent = 'Пароли не совпадают';
-      if (users[login]) return err.textContent = 'Такой логин уже существует';
-      users[login] = { login, password: pass, createdAt: Date.now(), cars: [], expenses: [] };
-      saveUsers(); loginUser(login);
+      err.textContent = 'Загрузка...';
+      
+      const { data, error } = await supabaseClient.auth.signUp({ 
+        email: email, 
+        password: pass,
+        options: { 
+          data: { login: login },
+          emailRedirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      
+      if (error) return err.textContent = error.message;
+      
+      if (data.user && !data.session) {
+        err.style.color = '#4ade80';
+        err.textContent = 'Аккаунт создан! Проверьте почту и перейдите по ссылке для подтверждения.';
+        setTimeout(() => { err.style.color = 'var(--danger)'; setAuthMode(false); }, 5000);
+      } else {
+        await loginUser({ user: data.user });
+      }
     } else {
-      if (!users[login] || users[login].password !== pass) return err.textContent = 'Неверный логин или пароль';
-      loginUser(login);
+      err.textContent = 'Загрузка...';
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
+      if (error) return err.textContent = 'Неверный email или пароль';
     }
   }
 
-  function loginUser(login) {
-    currentUser = users[login];
-    localStorage.setItem(LS_SESSION, login);
+  async function resetPassword() {
+    const email = prompt('Введите email, указанный при регистрации:');
+    if (!email) return;
+    
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname + '?reset=true'
+    });
+    
+    if (error) alert('Ошибка: ' + error.message);
+    else alert('Письмо для сброса пароля отправлено на ' + email);
+  }
+
+  async function loginUser(session) {
+    currentUser = session.user;
+    
+    const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
+    const { data: expenses } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
+    
+    userCars = cars || [];
+    userExpenses = expenses || [];
+    
+    if (userCars.length > 0) currentCarId = userCars[0].id;
+
     document.getElementById('welcome-screen').classList.remove('active');
     document.getElementById('auth-screen').classList.remove('active');
     document.getElementById('app-container').classList.add('active');
-    if (currentUser.cars.length > 0) currentCarId = currentUser.cars[0].id;
+    
     renderAll(); switchTab('home');
   }
 
-  function logout() {
+  async function logout() {
     if(confirm('Выйти из аккаунта?')) {
-      localStorage.removeItem(LS_SESSION);
-      currentUser = null;
-      document.getElementById('app-container').classList.remove('active');
+      await supabaseClient.auth.signOut();
+      currentUser = null; userCars = []; userExpenses = []; currentCarId = null;
       showWelcomeScreen();
     }
   }
 
-  // --- НАВИГАЦИЯ ---
+  // Слушатель авторизации и восстановления пароля
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+      if (session) {
+        await loginUser(session);
+      } else {
+        showWelcomeScreen();
+      }
+    }
+    if (event === 'PASSWORD_RECOVERY') {
+      const newPass = prompt('Придумайте новый пароль (минимум 6 символов):');
+      if (newPass && newPass.length >= 6) {
+        const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+        if (error) alert('Ошибка: ' + error.message);
+        else {
+          alert('Пароль успешно обновлён! Теперь вы можете войти.');
+          await supabaseClient.auth.signOut();
+          showAuthScreen();
+        }
+      }
+    }
+  });
+
+  // ====================================================================
+  // 4. НАВИГАЦИЯ И ИНТЕРФЕЙС
+  // ====================================================================
   function switchTab(tabId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -610,144 +551,22 @@
     if (tabId === 'stats') { updateReportSelect(); renderReport(); }
     if (tabId === 'profile') { renderProfile(); }
     if (tabId === 'search') { 
-      const car = currentUser.cars.find(c => c.id === currentCarId);
+      const car = userCars.find(c => c.id === currentCarId);
       if (car && car.vin) document.getElementById('search-vin').value = car.vin;
     }
   }
 
-  // --- КАСТОМНЫЙ КАЛЕНДАРЬ ---
-  let calDate = new Date();
-  let selectedDate = new Date();
-  
-  const calEl = document.getElementById('custom-calendar');
-  const dateDisplay = document.getElementById('exp-date-display');
-  
-  dateDisplay.addEventListener('click', (e) => {
-    e.stopPropagation();
-    calEl.classList.toggle('open');
-    if (calEl.classList.contains('open')) {
-      if (document.getElementById('exp-date').value) {
-        selectedDate = new Date(document.getElementById('exp-date').value);
-      } else {
-        selectedDate = new Date();
-      }
-      calDate = new Date(selectedDate);
-      renderCalendar();
-    }
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!calEl.contains(e.target) && e.target !== dateDisplay) calEl.classList.remove('open');
-  });
-
-  function renderCalendar() {
-    const year = calDate.getFullYear();
-    const month = calDate.getMonth();
-    document.getElementById('cal-month-year').textContent = calDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const grid = document.getElementById('cal-grid');
-    
-    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
-    
-    let offset = firstDay === 0 ? 6 : firstDay - 1;
-    for (let i = 0; i < offset; i++) {
-      const empty = document.createElement('div');
-      empty.className = 'cal-day empty';
-      grid.appendChild(empty);
-    }
-    
-    for (let i = 1; i <= daysInMonth; i++) {
-      const day = document.createElement('div');
-      day.className = 'cal-day';
-      day.textContent = i;
-      
-      const thisDate = new Date(year, month, i);
-      if (thisDate.toDateString() === new Date().toDateString()) day.classList.add('today');
-      if (thisDate.toDateString() === selectedDate.toDateString()) day.classList.add('selected');
-      
-      day.addEventListener('click', () => {
-        selectedDate = thisDate;
-        const iso = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        document.getElementById('exp-date').value = iso;
-        dateDisplay.value = fmtDate(iso);
-        calEl.classList.remove('open');
-      });
-      grid.appendChild(day);
-    }
-  }
-
-  function changeMonth(step) {
-    calDate.setMonth(calDate.getMonth() + step);
-    renderCalendar();
-  }
-
-  // --- МОДАЛКИ ---
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-  function openExpenseModal(expId = null) {
-    if (currentUser.cars.length === 0) return alert('Сначала добавьте автомобиль');
-    const form = document.getElementById('expense-form');
-    form.reset();
-    document.getElementById('exp-id').value = '';
-    document.getElementById('exp-modal-title').textContent = expId ? 'Редактировать' : 'Новый расход';
-    
-    const sel = document.getElementById('exp-car');
-    sel.innerHTML = currentUser.cars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
-    
-    if (expId) {
-      const exp = currentUser.expenses.find(e => e.id === expId);
-      if (exp) {
-        document.getElementById('exp-id').value = exp.id;
-        document.getElementById('exp-category').value = exp.category;
-        document.getElementById('exp-amount').value = exp.amount;
-        document.getElementById('exp-desc').value = exp.desc;
-        document.getElementById('exp-date').value = exp.date;
-        dateDisplay.value = fmtDate(exp.date);
-        document.getElementById('exp-car').value = exp.carId;
-      }
-    } else {
-      const todayIso = new Date().toISOString().split('T')[0];
-      document.getElementById('exp-date').value = todayIso;
-      dateDisplay.value = fmtDate(todayIso);
-      if (currentCarId) sel.value = currentCarId;
-    }
-    openModal('expense-modal');
-  }
-
-  function openCarModal(carId = null) {
-    const form = document.getElementById('car-form');
-    form.reset();
-    document.getElementById('car-id').value = '';
-    document.getElementById('car-modal-title').textContent = carId ? 'Редактировать' : 'Новый автомобиль';
-    if (carId) {
-      const car = currentUser.cars.find(c => c.id === carId);
-      if (car) {
-        document.getElementById('car-id').value = car.id;
-        document.getElementById('car-brand').value = car.brand;
-        document.getElementById('car-model').value = car.model;
-        document.getElementById('car-engine').value = car.engine || '';
-        document.getElementById('car-plate').value = car.plate;
-        document.getElementById('car-vin').value = car.vin || '';
-        document.getElementById('car-color').value = car.color || '';
-      }
-    }
-    openModal('car-modal');
-  }
-
-  // --- РЕНДЕР ---
+  // ====================================================================
+  // 5. РЕНДЕР ДАННЫХ
+  // ====================================================================
   function renderAll() {
     if (!currentUser) return;
     renderHome(); renderCars();
-    if (document.getElementById('screen-stats').classList.contains('active')) {
-      updateReportSelect(); renderReport();
-    }
+    if (document.getElementById('screen-stats').classList.contains('active')) { updateReportSelect(); renderReport(); }
   }
 
   function renderHome() {
-    const total = currentUser.expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const total = userExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     document.getElementById('home-total').textContent = fmtMoney(total);
 
     const months = [];
@@ -756,7 +575,7 @@
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({ label: d.toLocaleDateString('ru-RU', { month: 'short' }), year: d.getFullYear(), month: d.getMonth(), total: 0 });
     }
-    currentUser.expenses.forEach(e => {
+    userExpenses.forEach(e => {
       const d = new Date(e.date);
       const m = months.find(m => m.year === d.getFullYear() && m.month === d.getMonth());
       if (m) m.total += Number(e.amount);
@@ -788,18 +607,18 @@
       else { trendEl.className = 'total-trend trend-neutral'; trendEl.innerHTML = `0%`; }
     }
 
-    const recent = [...currentUser.expenses].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+    const recent = [...userExpenses].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
     const list = document.getElementById('home-recent-list');
     if (recent.length === 0) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Пока нет расходов</div>'; return; }
     
     list.innerHTML = recent.map(e => {
       const cat = CATEGORIES[e.category] || CATEGORIES.other;
-      const car = currentUser.cars.find(c => c.id === e.carId);
+      const car = userCars.find(c => c.id === e.car_id);
       return `
       <div class="expense-item">
         <div class="expense-icon">${cat.icon}</div>
         <div class="expense-info">
-          <div class="expense-title">${cat.name} ${e.desc ? '· '+e.desc : ''}</div>
+          <div class="expense-title">${cat.name} ${e.description ? '· '+e.description : ''}</div>
           <div class="expense-date">${fmtDate(e.date)} ${car ? '· ' + car.brand + ' ' + car.model : ''}</div>
         </div>
         <div class="expense-amount">${fmtMoney(e.amount)}</div>
@@ -813,8 +632,8 @@
 
   function renderCars() {
     const list = document.getElementById('cars-list');
-    if (currentUser.cars.length === 0) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Нет автомобилей</div>'; return; }
-    list.innerHTML = currentUser.cars.map(c => `
+    if (userCars.length === 0) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Нет автомобилей</div>'; return; }
+    list.innerHTML = userCars.map(c => `
       <div class="car-card ${c.id === currentCarId ? 'active' : ''}" onclick="selectCar('${c.id}')">
         <div class="car-logo"><img src="${getBrandLogo(c.brand)}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-weight:800; font-size:20px; color:#fff;\\'>${c.brand[0]}</span>'"></div>
         <div class="car-info">
@@ -831,67 +650,256 @@
 
   function selectCar(id) { currentCarId = id; renderCars(); }
   
-  function deleteCar(id) {
+  async function deleteCar(id) {
     if (!confirm('Удалить авто и все его расходы?')) return;
-    currentUser.cars = currentUser.cars.filter(c => c.id !== id);
-    currentUser.expenses = currentUser.expenses.filter(e => e.carId !== id);
-    if (currentCarId === id) currentCarId = currentUser.cars.length > 0 ? currentUser.cars[0].id : null;
-    saveUsers(); renderAll();
+    await supabaseClient.from('cars').delete().eq('id', id);
+    userCars = userCars.filter(c => c.id !== id);
+    userExpenses = userExpenses.filter(e => e.car_id !== id);
+    if (currentCarId === id) currentCarId = userCars.length > 0 ? userCars[0].id : null;
+    renderAll();
   }
 
-  function deleteExpense(id) {
+  async function deleteExpense(id) {
     if (!confirm('Удалить этот расход?')) return;
-    currentUser.expenses = currentUser.expenses.filter(e => e.id !== id);
-    saveUsers(); renderAll();
+    await supabaseClient.from('expenses').delete().eq('id', id);
+    userExpenses = userExpenses.filter(e => e.id !== id);
+    renderAll();
   }
 
   function renderProfile() {
-    document.getElementById('profile-login').textContent = '@' + currentUser.login;
-    document.getElementById('profile-avatar').textContent = currentUser.login[0].toUpperCase();
-    document.getElementById('profile-date').textContent = 'С нами с ' + fmtDate(new Date(currentUser.createdAt).toISOString());
+    const login = currentUser?.user_metadata?.login || currentUser?.email || 'user';
+    document.getElementById('profile-login').textContent = '@' + login;
+    document.getElementById('profile-avatar').textContent = login[0].toUpperCase();
+    const created = currentUser ? new Date(currentUser.created_at).toISOString() : new Date().toISOString();
+    document.getElementById('profile-date').textContent = 'С нами с ' + fmtDate(created);
   }
 
-  // --- ПОИСК ЗАПЧАСТЕЙ ---
-  const SHOPS = [
-    { name: 'Autopiter', site: 'https://autopiter.ru', phone: '+7 (925) 357-88-26', hours: 'Пн–Пт 10:00–21:00', searchUrl: q => `https://autopiter.ru/search?q=${encodeURIComponent(q)}` },
-    { name: 'Emex', site: 'https://www.emex.ru', phone: '+7 (495) 799-55-66', hours: 'Круглосуточно', searchUrl: q => `https://www.emex.ru/search?q=${encodeURIComponent(q)}` },
-    { name: 'Exist', site: 'https://exist.ru', phone: '+7 (495) 780-00-00', hours: 'Пн–Пт 09:00–21:00', searchUrl: q => `https://exist.ru/search/?q=${encodeURIComponent(q)}` },
-    { name: 'ZZap', site: 'https://zzap.ru', phone: '+7 (495) 988-88-88', hours: 'Пн–Вс 09:00–21:00', searchUrl: q => `https://zzap.ru/search/?q=${encodeURIComponent(q)}` }
-  ];
+  // Копирование email поддержки
+  document.getElementById('support-email').addEventListener('click', function() {
+    const email = 'support.garage.car@gmail.com';
+    navigator.clipboard.writeText(email).then(() => {
+      const originalHtml = this.innerHTML;
+      this.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Скопировано!</span>';
+      this.style.background = 'rgba(74, 222, 128, 0.15)'; // Зеленый оттенок для успеха
+      this.style.color = '#4ade80';
+      setTimeout(() => {
+        this.innerHTML = originalHtml;
+        this.style.background = 'rgba(255, 204, 0, 0.1)';
+        this.style.color = 'var(--yellow)';
+      }, 2000);
+    }).catch(err => alert('Не удалось скопировать: ' + err));
+  });
 
-  function doSearchParts() {
-    const vin = document.getElementById('search-vin').value.trim().toUpperCase();
-    const part = document.getElementById('search-part').value.trim();
-    const out = document.getElementById('search-results');
+  // ====================================================================
+  // 6. МОДАЛКИ И КАЛЕНДАРЬ
+  // ====================================================================
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    if (!vin && !part) { out.innerHTML = '<div style="color:var(--text-muted); padding:10px;">Введите VIN или запчасть.</div>'; return; }
-    if (vin && !validateVin(vin)) { out.innerHTML = '<div style="color:var(--danger); padding:10px;">VIN должен содержать 17 символов.</div>'; return; }
+  // Кастомный календарь
+  let calDate = new Date();
+  let selectedDate = new Date();
+  const calEl = document.getElementById('custom-calendar');
+  const dateDisplay = document.getElementById('exp-date-display');
+  
+  dateDisplay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    calEl.classList.toggle('open');
+    if (calEl.classList.contains('open')) {
+      const currentVal = document.getElementById('exp-date').value;
+      selectedDate = currentVal ? new Date(currentVal) : new Date();
+      calDate = new Date(selectedDate);
+      renderCalendar();
+    }
+  });
 
-    const query = [vin, part].filter(Boolean).join(' ');
-    const links = SHOPS.map(s => `<a class="search-link-btn" href="${s.searchUrl(query)}" target="_blank">🔍 ${s.name}</a>`).join('');
-    const shopsHtml = SHOPS.map(s => `
-      <div class="shop-card">
-        <div class="shop-name">${s.name}</div>
-        <div class="shop-meta">📞 ${s.phone}<br>🕐 ${s.hours}<br>🌐 <a href="${s.site}" target="_blank">${s.site.replace('https://', '')}</a></div>
-      </div>
-    `).join('');
+  document.addEventListener('click', (e) => {
+    if (!calEl.contains(e.target) && e.target !== dateDisplay) calEl.classList.remove('open');
+  });
 
-    out.innerHTML = `
-      <div class="search-panel" style="background:transparent; padding:0;">
-        <div style="font-size:14px; margin-bottom:12px;">Ссылки на поиск: <b>${query}</b></div>
-        <div class="search-links" style="margin-bottom:20px;">${links}</div>
-        ${shopsHtml}
-      </div>
-    `;
+  function renderCalendar() {
+    const year = calDate.getFullYear(); const month = calDate.getMonth();
+    document.getElementById('cal-month-year').textContent = calDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const grid = document.getElementById('cal-grid');
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+    
+    let offset = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < offset; i++) {
+      const empty = document.createElement('div'); empty.className = 'cal-day empty'; grid.appendChild(empty);
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      const day = document.createElement('div'); day.className = 'cal-day'; day.textContent = i;
+      const thisDate = new Date(year, month, i);
+      if (thisDate.toDateString() === new Date().toDateString()) day.classList.add('today');
+      if (thisDate.toDateString() === selectedDate.toDateString()) day.classList.add('selected');
+      
+      day.addEventListener('click', () => {
+        selectedDate = thisDate;
+        const iso = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        document.getElementById('exp-date').value = iso;
+        dateDisplay.value = fmtDate(iso);
+        calEl.classList.remove('open');
+      });
+      grid.appendChild(day);
+    }
+  }
+  function changeMonth(step) { calDate.setMonth(calDate.getMonth() + step); renderCalendar(); }
+
+  // Открытие модалки расхода
+  function openExpenseModal(expId = null) {
+    if (userCars.length === 0) return alert('Сначала добавьте автомобиль');
+    const form = document.getElementById('expense-form');
+    form.reset();
+    document.getElementById('exp-id').value = '';
+    document.getElementById('exp-modal-title').textContent = expId ? 'Редактировать' : 'Новый расход';
+    
+    const sel = document.getElementById('exp-car');
+    sel.innerHTML = userCars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
+    
+    if (expId) {
+      const exp = userExpenses.find(e => e.id === expId);
+      if (exp) {
+        document.getElementById('exp-id').value = exp.id;
+        document.getElementById('exp-category').value = exp.category;
+        document.getElementById('exp-amount').value = exp.amount;
+        document.getElementById('exp-desc').value = exp.description || '';
+        document.getElementById('exp-date').value = exp.date;
+        dateDisplay.value = fmtDate(exp.date);
+        document.getElementById('exp-car').value = exp.car_id;
+      }
+    } else {
+      const todayIso = new Date().toISOString().split('T')[0];
+      document.getElementById('exp-date').value = todayIso;
+      dateDisplay.value = fmtDate(todayIso);
+      if (currentCarId) sel.value = currentCarId;
+    }
+    openModal('expense-modal');
   }
 
-  // --- ОТЧЕТ ---
+  // Открытие модалки авто
+  function openCarModal(carId = null) {
+    const form = document.getElementById('car-form');
+    form.reset();
+    document.getElementById('car-id').value = '';
+    document.getElementById('car-modal-title').textContent = carId ? 'Редактировать' : 'Новый автомобиль';
+    if (carId) {
+      const car = userCars.find(c => c.id === carId);
+      if (car) {
+        document.getElementById('car-id').value = car.id;
+        document.getElementById('car-brand').value = car.brand;
+        document.getElementById('car-model').value = car.model;
+        document.getElementById('car-engine').value = car.engine || '';
+        document.getElementById('car-plate').value = car.plate;
+        document.getElementById('car-vin').value = car.vin || '';
+        document.getElementById('car-color').value = car.color || '';
+      }
+    }
+    openModal('car-modal');
+  }
+
+  // ====================================================================
+  // 7. ФОРМЫ (СОХРАНЕНИЕ В БАЗУ)
+  // ====================================================================
+  document.getElementById('expense-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('exp-id').value;
+    const data = {
+      user_id: currentUser.id,
+      car_id: document.getElementById('exp-car').value,
+      category: document.getElementById('exp-category').value,
+      amount: parseFloat(document.getElementById('exp-amount').value),
+      description: document.getElementById('exp-desc').value.trim(),
+      date: document.getElementById('exp-date').value
+    };
+
+    if (id) {
+      const { error } = await supabaseClient.from('expenses').update(data).eq('id', id);
+      if (error) return alert(error.message);
+      const idx = userExpenses.findIndex(e => e.id === id);
+      if (idx > -1) userExpenses[idx] = { ...userExpenses[idx], ...data };
+    } else {
+      const { data: res, error } = await supabaseClient.from('expenses').insert([data]).select();
+      if (error) return alert(error.message);
+      userExpenses.push(res[0]);
+    }
+    closeModal('expense-modal'); renderAll();
+  });
+
+  document.getElementById('car-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('car-id').value;
+    const vin = document.getElementById('car-vin').value.trim().toUpperCase();
+    if (!validateVin(vin)) return alert('VIN должен содержать 17 символов');
+
+    const data = {
+      user_id: currentUser.id,
+      brand: document.getElementById('car-brand').value.trim(),
+      model: document.getElementById('car-model').value.trim(),
+      engine: document.getElementById('car-engine').value.trim(),
+      plate: document.getElementById('car-plate').value.trim().toUpperCase(),
+      vin: vin,
+      color: document.getElementById('car-color').value.trim()
+    };
+
+    if (id) {
+      const { error } = await supabaseClient.from('cars').update(data).eq('id', id);
+      if (error) return alert(error.message);
+      const idx = userCars.findIndex(c => c.id === id);
+      if (idx > -1) userCars[idx] = { ...userCars[idx], ...data };
+    } else {
+      const { data: res, error } = await supabaseClient.from('cars').insert([data]).select();
+      if (error) return alert(error.message);
+      userCars.push(res[0]);
+      if (!currentCarId) currentCarId = res[0].id;
+    }
+    closeModal('car-modal'); renderAll();
+  });
+
+  // ====================================================================
+  // 8. АВТОДОПОЛНЕНИЕ
+  // ====================================================================
+  function setupAutocomplete(inputEl, listEl, getSuggestions, onSelect) {
+    let activeIdx = -1;
+    const close = () => { listEl.style.display = 'none'; activeIdx = -1; };
+    inputEl.addEventListener('input', () => {
+      const val = inputEl.value.trim().toLowerCase();
+      if (!val) { close(); return; }
+      const items = getSuggestions(val).slice(0, 8);
+      if (!items.length) { close(); return; }
+      activeIdx = -1;
+      listEl.innerHTML = items.map((item, i) => `<div class="autocomplete-item" data-idx="${i}" style="padding:10px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05);">${item}</div>`).join('');
+      listEl.style.display = 'block';
+      listEl.querySelectorAll('.autocomplete-item').forEach(el => {
+        el.addEventListener('mousedown', e => { e.preventDefault(); onSelect(el.textContent); close(); });
+      });
+    });
+    inputEl.addEventListener('blur', () => setTimeout(close, 150));
+  }
+
+  setupAutocomplete(document.getElementById('car-brand'), document.getElementById('brand-suggest'),
+    val => Object.keys(CAR_DB).filter(b => b.toLowerCase().includes(val)),
+    val => { document.getElementById('car-brand').value = val; document.getElementById('car-model').value = ''; }
+  );
+  setupAutocomplete(document.getElementById('car-model'), document.getElementById('model-suggest'),
+    val => {
+      const brand = document.getElementById('car-brand').value.trim();
+      return (CAR_DB[brand] || Object.values(CAR_DB).flat()).filter(m => m.toLowerCase().includes(val));
+    },
+    val => { document.getElementById('car-model').value = val; }
+  );
+
+  // ====================================================================
+  // 9. ОТЧЕТ И PDF
+  // ====================================================================
   function updateReportSelect() {
     const sel = document.getElementById('report-car-select');
     const currentVal = sel.value;
-    sel.innerHTML = currentUser.cars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
-    if (currentVal && currentUser.cars.find(c => c.id === currentVal)) sel.value = currentVal;
-    else if (currentUser.cars.length > 0) sel.value = currentUser.cars[0].id;
+    sel.innerHTML = userCars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
+    if (currentVal && userCars.find(c => c.id === currentVal)) sel.value = currentVal;
+    else if (userCars.length > 0) sel.value = userCars[0].id;
   }
 
   function renderReport() {
@@ -899,12 +907,12 @@
     const area = document.getElementById('report-area');
     if (!carId) { area.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Добавьте авто</div>'; return; }
 
-    const car = currentUser.cars.find(c => c.id === carId);
-    const carExpenses = currentUser.expenses.filter(e => e.carId === carId).sort((a,b) => new Date(b.date) - new Date(a.date));
+    const car = userCars.find(c => c.id === carId);
+    const carExpenses = userExpenses.filter(e => e.car_id === carId).sort((a,b) => new Date(b.date) - new Date(a.date));
     const total = carExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     const rows = carExpenses.map(e => {
       const cat = CATEGORIES[e.category] || CATEGORIES.other;
-      return `<tr><td>${fmtDate(e.date)}</td><td>${cat.name}</td><td>${e.desc || '—'}</td><td class="num">${fmtMoney(e.amount)}</td></tr>`;
+      return `<tr><td>${fmtDate(e.date)}</td><td>${cat.name}</td><td>${e.description || '—'}</td><td class="num">${fmtMoney(e.amount)}</td></tr>`;
     }).join('');
 
     area.innerHTML = `
@@ -944,89 +952,40 @@
     html2pdf().set(opt).from(element).save().then(() => { element.style.width = '100%'; });
   }
 
-  // --- ФОРМЫ ---
-  document.getElementById('expense-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('exp-id').value;
-    const data = {
-      carId: document.getElementById('exp-car').value,
-      category: document.getElementById('exp-category').value,
-      amount: parseFloat(document.getElementById('exp-amount').value),
-      desc: document.getElementById('exp-desc').value.trim(),
-      date: document.getElementById('exp-date').value
-    };
-    if (id) {
-      const exp = currentUser.expenses.find(e => e.id === id);
-      if (exp) Object.assign(exp, data);
-    } else {
-      currentUser.expenses.push({ id: genId(), ...data });
-    }
-    closeModal('expense-modal'); saveUsers(); renderAll();
-  });
+  // ====================================================================
+  // 10. ПОИСК ЗАПЧАСТЕЙ
+  // ====================================================================
+  const SHOPS = [
+    { name: 'Autopiter', site: 'https://autopiter.ru', phone: '+7 (925) 357-88-26', hours: 'Пн–Пт 10:00–21:00', searchUrl: q => `https://autopiter.ru/search?q=${encodeURIComponent(q)}` },
+    { name: 'Emex', site: 'https://www.emex.ru', phone: '+7 (495) 799-55-66', hours: 'Круглосуточно', searchUrl: q => `https://www.emex.ru/search?q=${encodeURIComponent(q)}` },
+    { name: 'Exist', site: 'https://exist.ru', phone: '+7 (495) 780-00-00', hours: 'Пн–Пт 09:00–21:00', searchUrl: q => `https://exist.ru/search/?q=${encodeURIComponent(q)}` },
+    { name: 'ZZap', site: 'https://zzap.ru', phone: '+7 (495) 988-88-88', hours: 'Пн–Вс 09:00–21:00', searchUrl: q => `https://zzap.ru/search/?q=${encodeURIComponent(q)}` }
+  ];
 
-  document.getElementById('car-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('car-id').value;
-    const vin = document.getElementById('car-vin').value.trim().toUpperCase();
-    if (!validateVin(vin)) return alert('VIN должен содержать 17 символов');
+  function doSearchParts() {
+    const vin = document.getElementById('search-vin').value.trim().toUpperCase();
+    const part = document.getElementById('search-part').value.trim();
+    const out = document.getElementById('search-results');
 
-    const data = {
-      brand: document.getElementById('car-brand').value.trim(),
-      model: document.getElementById('car-model').value.trim(),
-      engine: document.getElementById('car-engine').value.trim(),
-      plate: document.getElementById('car-plate').value.trim().toUpperCase(),
-      vin: vin,
-      color: document.getElementById('car-color').value.trim()
-    };
-    if (id) {
-      const car = currentUser.cars.find(c => c.id === id);
-      if (car) Object.assign(car, data);
-    } else {
-      const newCar = { id: genId(), ...data };
-      currentUser.cars.push(newCar);
-      if (!currentCarId) currentCarId = newCar.id;
-    }
-    closeModal('car-modal'); saveUsers(); renderAll();
-  });
+    if (!vin && !part) { out.innerHTML = '<div style="color:var(--text-muted); padding:10px;">Введите VIN или запчасть.</div>'; return; }
+    if (vin && !validateVin(vin)) { out.innerHTML = '<div style="color:var(--danger); padding:10px;">VIN должен содержать 17 символов.</div>'; return; }
 
-  // --- АВТОДОПОЛНЕНИЕ ---
-  function setupAutocomplete(inputEl, listEl, getSuggestions, onSelect) {
-    let activeIdx = -1;
-    const close = () => { listEl.style.display = 'none'; activeIdx = -1; };
-    inputEl.addEventListener('input', () => {
-      const val = inputEl.value.trim().toLowerCase();
-      if (!val) { close(); return; }
-      const items = getSuggestions(val).slice(0, 8);
-      if (!items.length) { close(); return; }
-      activeIdx = -1;
-      listEl.innerHTML = items.map((item, i) => `<div class="autocomplete-item" data-idx="${i}" style="padding:10px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05);">${item}</div>`).join('');
-      listEl.style.display = 'block';
-      listEl.querySelectorAll('.autocomplete-item').forEach(el => {
-        el.addEventListener('mousedown', e => { e.preventDefault(); onSelect(el.textContent); close(); });
-      });
-    });
-    inputEl.addEventListener('blur', () => setTimeout(close, 150));
-  }
+    const query = [vin, part].filter(Boolean).join(' ');
+    const links = SHOPS.map(s => `<a class="search-link-btn" href="${s.searchUrl(query)}" target="_blank">🔍 ${s.name}</a>`).join('');
+    const shopsHtml = SHOPS.map(s => `
+      <div class="shop-card">
+        <div class="shop-name">${s.name}</div>
+        <div class="shop-meta">📞 ${s.phone}<br>🕐 ${s.hours}<br>🌐 <a href="${s.site}" target="_blank">${s.site.replace('https://', '')}</a></div>
+      </div>
+    `).join('');
 
-  setupAutocomplete(document.getElementById('car-brand'), document.getElementById('brand-suggest'),
-    val => Object.keys(CAR_DB).filter(b => b.toLowerCase().includes(val)),
-    val => { document.getElementById('car-brand').value = val; document.getElementById('car-model').value = ''; }
-  );
-  setupAutocomplete(document.getElementById('car-model'), document.getElementById('model-suggest'),
-    val => {
-      const brand = document.getElementById('car-brand').value.trim();
-      return (CAR_DB[brand] || Object.values(CAR_DB).flat()).filter(m => m.toLowerCase().includes(val));
-    },
-    val => { document.getElementById('car-model').value = val; }
-  );
-
-  // --- ИНИЦИАЛИЗАЦИЯ ---
-  loadUsers();
-  const savedSession = localStorage.getItem(LS_SESSION);
-  if (savedSession && users[savedSession]) {
-    loginUser(savedSession);
-  } else {
-    showWelcomeScreen();
+    out.innerHTML = `
+      <div class="search-panel" style="background:transparent; padding:0;">
+        <div style="font-size:14px; margin-bottom:12px;">Ссылки на поиск: <b>${query}</b></div>
+        <div class="search-links" style="margin-bottom:20px;">${links}</div>
+        ${shopsHtml}
+      </div>
+    `;
   }
 </script>
 </body>
