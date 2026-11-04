@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Гараж — цифровой дневник автомобиля</title>
 <link rel="icon" type="image/png" href="Favicon-32x32.png">
-<!-- Подключаем Supabase и библиотеку для PDF -->
+<!-- Подключаем Supabase и библиотеки для PDF -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root {
     --bg: #121212; --surface: #1e1e1e; --surface-hover: #2a2a2a;
@@ -118,7 +119,7 @@
   .action-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
   .action-btn.delete:hover { color: var(--danger); background: rgba(255,68,68,0.1); }
 
-  .fab-add { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--yellow); color: #000; border: none; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 10; box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3); transition: transform 0.1s; }
+  .fab-add { position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--yellow); color: #000; border: none; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 10; box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3); transition: transform 0.1s; }
   .fab-add:active { transform: translateX(-50%) scale(0.98); }
   .fab-add svg { width: 20px; height: 20px; }
 
@@ -175,31 +176,19 @@
   .report-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   .btn-print, .btn-pdf { background: var(--yellow); color: #000; border: none; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-pdf { background: var(--surface-hover); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
-  
-  .report-document { background: #fff; color: #000; border-radius: 16px; padding: 30px; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
-  .report-document h1 { font-size: 24px; margin-bottom: 5px; font-weight: 800; }
-  .report-header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
-  .report-logo { width: 48px; height: 48px; object-fit: contain; margin-bottom: 10px; }
-  .report-document table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-  .report-document th { text-align: left; border-bottom: 1px solid #000; padding: 8px 0; font-size: 12px; text-transform: uppercase; color: #333; }
-  .report-document td { padding: 8px 0; border-bottom: 1px solid #eee; color: #000; }
-  .report-document .num { text-align: right; }
-  .report-document .r-total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; color: #000; }
 
   @media print {
     @page { margin: 15mm; }
     body, .app-container, .main-content, .screen, .report-controls, .header, .bottom-nav, .fab-add, .modal-overlay, .auth-screen { display: block !important; background: #fff !important; color: #000 !important; position: static !important; padding: 0 !important; margin: 0 !important; height: auto !important; overflow: visible !important; max-width: 100% !important; box-shadow: none !important; }
     .header, .bottom-nav, .fab-add, .report-controls, .modal-overlay, .auth-screen, .section-header, .total-card, .expense-list { display: none !important; }
     #screen-stats { display: block !important; }
-    .report-document { padding: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
-    .report-document * { color: #000 !important; }
   }
 </style>
 </head>
 <body>
 
 <!-- ЭКРАН 1: ПРИВЕТСТВИЕ -->
-<div id="welcome-screen" class="auth-screen active">
+<div id="welcome-screen" class="auth-screen">
   <div class="auth-card">
     <img src="Favicon-32x32.png" alt="Гараж" class="auth-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ffcc00\' stroke-width=\'2\'><path d=\'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\'></path></svg>'">
     <div class="auth-title">Гараж</div>
@@ -279,17 +268,28 @@
       <button class="btn-submit" style="background: var(--surface); color: var(--text); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;" onclick="openCarModal()">+ Добавить автомобиль</button>
     </section>
 
-    <!-- ОТЧЕТ -->
+    <!-- ИСТОРИЯ / ОТЧЕТ -->
     <section id="screen-stats" class="screen">
-      <div class="section-header" style="margin-top: 10px;"><div class="section-title">Отчёт</div></div>
+      <div class="section-header" style="margin-top: 10px;"><div class="section-title">История и Отчёт</div></div>
+      
       <div class="report-controls">
-        <div class="input-group"><label>Выберите автомобиль</label><select id="report-car-select" onchange="selectCar(this.value)"></select></div>
+        <div class="input-group">
+          <label>Фильтр сортировки</label>
+          <select id="sort-select" onchange="renderHistoryList()">
+            <option value="newest">По новизне (сначала новые)</option>
+            <option value="oldest">Самые старые</option>
+            <option value="expensive">Самые дорогие</option>
+            <option value="cheapest">Самые дешевые</option>
+          </select>
+        </div>
         <div class="report-buttons">
           <button class="btn-print" onclick="window.print()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Печать</button>
           <button class="btn-pdf" onclick="downloadPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Скачать PDF</button>
         </div>
       </div>
-      <div id="report-area"></div>
+
+      <div class="expense-list" id="history-list"></div>
+      <div id="print-area" style="display: none;"></div>
     </section>
 
     <!-- ПРОФИЛЬ -->
@@ -320,7 +320,7 @@
   <nav class="bottom-nav">
     <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Главная</button>
     <button class="nav-item" data-tab="cars" onclick="switchTab('cars')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>Авто</button>
-    <button class="nav-item" data-tab="stats" onclick="switchTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Отчёт</button>
+    <button class="nav-item" data-tab="stats" onclick="switchTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>История</button>
     <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>Ещё</button>
   </nav>
 </div>
@@ -367,6 +367,11 @@
         <input type="text" id="car-model" required placeholder="Например: Camry" autocomplete="off">
         <div class="autocomplete-list" id="model-suggest" style="position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--surface-hover); border-radius:12px; margin-top:4px; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.5); max-height:150px; overflow-y:auto;"></div>
       </div>
+      <div class="input-group" id="gen-group" style="display: none;">
+        <label>Поколение</label>
+        <select id="car-generation"></select>
+      </div>
+      <div class="input-group"><label>Год (обязательно)</label><input type="number" id="car-year" required min="1900" max="2100" placeholder="Например: 2019"></div>
       <div class="input-group"><label>Объём двигателя (л)</label><input type="number" id="car-engine" step="0.1" placeholder="Например: 2.5"></div>
       <div class="input-group"><label>Госномер</label><input type="text" id="car-plate" required placeholder="А123ВС77" maxlength="9" style="text-transform: uppercase;"></div>
       <div class="input-group"><label>Цвет</label><input type="text" id="car-color" placeholder="Необязательно"></div>
@@ -394,7 +399,51 @@
   let currentCarId = null;
   let isRegisterMode = false;
 
-  const CAR_DB = { "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"], "Toyota": ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "C-HR", "Supra"], "Volkswagen": ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Jetta", "Arteon"], "Kia": ["Rio", "Sportage", "Ceed", "K5", "Sorento", "Seltos", "Cerato"], "Hyundai": ["Solaris", "Creta", "Tucson", "Santa Fe", "Elantra", "i30", "Sonata"], "BMW": ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "M3", "M5"], "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "V-Class"], "Audi": ["A4", "A6", "A8", "Q5", "Q7", "Q8", "TT", "RS6"], "Nissan": ["Qashqai", "X-Trail", "Almera", "Juke", "Murano", "Patrol", "GT-R"], "Ford": ["Focus", "Mondeo", "Kuga", "Explorer", "Mustang", "Transit", "Fiesta"], "Mazda": ["3", "6", "CX-5", "CX-30", "CX-9", "MX-5"], "Skoda": ["Octavia", "Kodiaq", "Karoq", "Superb", "Rapid", "Fabia"], "Renault": ["Logan", "Duster", "Sandero", "Arkana", "Kaptur", "Megane"], "Honda": ["Civic", "Accord", "CR-V", "Pilot", "Fit", "HR-V"], "Peugeot": ["208", "308", "408", "3008", "5008", "2008"], "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V60"], "Land Rover": ["Discovery", "Range Rover", "Range Rover Sport", "Defender", "Evoque"], "Lexus": ["RX", "NX", "GX", "LX", "ES", "IS", "LS"], "Subaru": ["Forester", "Outback", "Impreza", "XV", "Legacy", "BRZ"], "Chery": ["Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8", "Explore 06"], "Geely": ["Coolray", "Atlas", "Tugella", "Monjaro", "Emgrand"], "Haval": ["Jolion", "F7", "Dargo", "H9", "H5"], "Exeed": ["TXL", "VX", "LX", "RX"], "Tesla": ["Model S", "Model 3", "Model X", "Model Y"] };
+  const CAR_DB = { 
+    "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"], 
+    "Toyota": ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "C-HR", "Supra"], 
+    "Volkswagen": ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Jetta", "Arteon"], 
+    "Kia": ["Rio", "Sportage", "Ceed", "K5", "Sorento", "Seltos", "Cerato"], 
+    "Hyundai": ["Solaris", "Creta", "Tucson", "Santa Fe", "Elantra", "i30", "Sonata"], 
+    "BMW": ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "M3", "M5"], 
+    "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "V-Class"], 
+    "Audi": ["A4", "A6", "A8", "Q5", "Q7", "Q8", "TT", "RS6"], 
+    "Nissan": ["Qashqai", "X-Trail", "Almera", "Juke", "Murano", "Patrol", "GT-R"], 
+    "Ford": ["Focus", "Mondeo", "Kuga", "Explorer", "Mustang", "Transit", "Fiesta"], 
+    "Mazda": ["3", "6", "CX-5", "CX-30", "CX-9", "MX-5"], 
+    "Skoda": ["Octavia", "Kodiaq", "Karoq", "Superb", "Rapid", "Fabia"], 
+    "Renault": ["Logan", "Duster", "Sandero", "Arkana", "Kaptur", "Megane"], 
+    "Honda": ["Civic", "Accord", "CR-V", "Pilot", "Fit", "HR-V"], 
+    "Peugeot": ["208", "308", "408", "3008", "5008", "2008"], 
+    "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V60"], 
+    "Land Rover": ["Discovery", "Range Rover", "Range Rover Sport", "Defender", "Evoque"], 
+    "Lexus": ["RX", "NX", "GX", "LX", "ES", "IS", "LS"], 
+    "Subaru": ["Forester", "Outback", "Impreza", "XV", "Legacy", "BRZ"], 
+    "Chery": ["Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8", "Explore 06"], 
+    "Geely": ["Coolray", "Atlas", "Tugella", "Monjaro", "Emgrand"], 
+    "Haval": ["Jolion", "F7", "Dargo", "H9", "H5"], 
+    "Exeed": ["TXL", "VX", "LX", "RX"], 
+    "Tesla": ["Model S", "Model 3", "Model X", "Model Y"] 
+  };
+
+  const GENERATIONS = {
+    "Octavia": ["A5", "A6", "A7", "A8", "MK4"],
+    "Camry": ["XV30", "XV40", "XV50", "XV70"],
+    "Vesta": ["NG", "Sport", "Cross"],
+    "Granta": ["FL", "1", "2"],
+    "Solaris": ["I", "II", "III"],
+    "Rio": ["I", "II", "III", "IV"],
+    "Focus": ["I", "II", "III", "IV"],
+    "Golf": ["Mk4", "Mk5", "Mk6", "Mk7", "Mk8"],
+    "Passat": ["B5", "B6", "B7", "B8"],
+    "3 Series": ["E46", "E90", "F30", "G20"],
+    "5 Series": ["E39", "E60", "F10", "G30"],
+    "C-Class": ["W203", "W204", "W205"],
+    "E-Class": ["W211", "W212", "W213"],
+    "Logan": ["I", "II"],
+    "Duster": ["I", "II"],
+    "X-Trail": ["T30", "T31", "T32", "T33"]
+  };
   
   const CATEGORIES = { 
     fuel: { name: 'Топливо', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18"></path><path d="M4 12h10"></path><path d="M14 8h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"></path><path d="M18 10V6"></path><path d="M18 14v4a2 2 0 0 1-2 2h-2"></path><path d="M2 22h14"></path></svg>' }, 
@@ -410,6 +459,12 @@
   const fmtDate = iso => { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
   const getBrandLogo = (brand) => { if (!brand) return ''; const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`; };
 
+  // Прячем экран приветствия, если есть сессия (чтобы не было мигания)
+  if (Object.keys(localStorage).some(k => k.includes('auth-token'))) {
+    document.getElementById('welcome-screen').style.display = 'none';
+    document.body.insertAdjacentHTML('beforeend', '<div id="loading-screen" style="position:fixed;inset:0;background:#121212;z-index:9999;display:grid;place-items:center;color:#ffcc00;font-size:24px;font-weight:800;">Загрузка...</div>');
+  }
+
   // ====================================================================
   // 3. ЭКРАНЫ И АВТОРИЗАЦИЯ
   // ====================================================================
@@ -417,6 +472,7 @@
     document.getElementById('welcome-screen').classList.add('active');
     document.getElementById('auth-screen').classList.remove('active');
     document.getElementById('app-container').classList.remove('active');
+    document.getElementById('welcome-screen').style.display = '';
   }
   function showAuthScreen() {
     document.getElementById('welcome-screen').classList.remove('active');
@@ -512,6 +568,9 @@
     document.getElementById('auth-screen').classList.remove('active');
     document.getElementById('app-container').classList.add('active');
     
+    const loader = document.getElementById('loading-screen');
+    if (loader) loader.remove();
+
     renderAll();
     
     const savedTab = localStorage.getItem('activeTab') || 'home';
@@ -534,6 +593,8 @@
       if (session) {
         await loginUser(session);
       } else {
+        const loader = document.getElementById('loading-screen');
+        if (loader) loader.remove();
         showWelcomeScreen();
       }
     }
@@ -569,7 +630,7 @@
     
     localStorage.setItem('activeTab', tabId);
 
-    if (tabId === 'stats') { updateReportSelect(); renderReport(); }
+    if (tabId === 'stats') { renderHistoryList(); }
     if (tabId === 'profile') { renderProfile(); }
   }
 
@@ -578,8 +639,7 @@
   // ====================================================================
   function renderAll() {
     if (!currentUser) return;
-    renderHome(); renderCars();
-    if (document.getElementById('screen-stats').classList.contains('active')) { updateReportSelect(); renderReport(); }
+    renderHome(); renderCars(); renderHistoryList();
   }
 
   function renderHome() {
@@ -628,7 +688,8 @@
       else { trendEl.className = 'total-trend trend-neutral'; trendEl.innerHTML = `0%`; }
     }
 
-    const recent = [...targetExpenses].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+    // Показываем только 3 последних расхода
+    const recent = [...targetExpenses].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
     const list = document.getElementById('home-recent-list');
     if (recent.length === 0) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Пока нет расходов</div>'; return; }
     
@@ -657,8 +718,8 @@
       <div class="car-card ${c.id === currentCarId ? 'active' : ''}" onclick="selectCar('${c.id}')">
         <div class="car-logo"><img src="${getBrandLogo(c.brand)}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-weight:800; font-size:20px; color:#fff;\\'>${c.brand[0]}</span>'"></div>
         <div class="car-info">
-          <div class="car-name">${c.brand} ${c.model}</div>
-          <div class="car-plate">${c.plate} ${c.engine ? '· ' + c.engine + ' л' : ''}</div>
+          <div class="car-name">${c.brand} ${c.model} ${c.generation ? '· ' + c.generation : ''}</div>
+          <div class="car-plate">${c.plate} · ${c.year} г. ${c.engine ? '· ' + c.engine + ' л' : ''}</div>
         </div>
         <div class="expense-actions">
           <button class="action-btn" onclick="event.stopPropagation(); openCarModal('${c.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
@@ -673,10 +734,7 @@
     localStorage.setItem('currentCarId', id);
     renderCars(); 
     if (document.getElementById('screen-home').classList.contains('active')) renderHome();
-    if (document.getElementById('screen-stats').classList.contains('active')) {
-      document.getElementById('report-car-select').value = id;
-      renderReport();
-    }
+    if (document.getElementById('screen-stats').classList.contains('active')) renderHistoryList();
   }
   
   async function deleteCar(id) {
@@ -816,15 +874,25 @@
     form.reset();
     document.getElementById('car-id').value = '';
     document.getElementById('car-modal-title').textContent = carId ? 'Редактировать' : 'Новый автомобиль';
+    document.getElementById('gen-group').style.display = 'none';
+    
     if (carId) {
       const car = userCars.find(c => c.id === carId);
       if (car) {
         document.getElementById('car-id').value = car.id;
         document.getElementById('car-brand').value = car.brand;
         document.getElementById('car-model').value = car.model;
+        document.getElementById('car-year').value = car.year || '';
         document.getElementById('car-engine').value = car.engine || '';
         document.getElementById('car-plate').value = car.plate;
         document.getElementById('car-color').value = car.color || '';
+        
+        if (car.generation) {
+          document.getElementById('gen-group').style.display = 'block';
+          const sel = document.getElementById('car-generation');
+          sel.innerHTML = `<option value="${car.generation}">${car.generation}</option>`;
+          sel.value = car.generation;
+        }
       }
     }
     openModal('car-modal');
@@ -861,11 +929,14 @@
   document.getElementById('car-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('car-id').value;
+    const genValue = document.getElementById('car-generation').value;
     
     const data = {
       user_id: currentUser.id,
       brand: document.getElementById('car-brand').value.trim(),
       model: document.getElementById('car-model').value.trim(),
+      year: document.getElementById('car-year').value.trim(),
+      generation: document.getElementById('gen-group').style.display !== 'none' ? genValue : null,
       engine: document.getElementById('car-engine').value.trim(),
       plate: document.getElementById('car-plate').value.trim().toUpperCase(),
       color: document.getElementById('car-color').value.trim()
@@ -911,97 +982,144 @@
 
   setupAutocomplete(document.getElementById('car-brand'), document.getElementById('brand-suggest'),
     val => Object.keys(CAR_DB).filter(b => b.toLowerCase().includes(val)),
-    val => { document.getElementById('car-brand').value = val; document.getElementById('car-model').value = ''; }
+    val => { document.getElementById('car-brand').value = val; document.getElementById('car-model').value = ''; document.getElementById('gen-group').style.display = 'none'; }
   );
+  
   setupAutocomplete(document.getElementById('car-model'), document.getElementById('model-suggest'),
     val => {
       const brand = document.getElementById('car-brand').value.trim();
       return (CAR_DB[brand] || Object.values(CAR_DB).flat()).filter(m => m.toLowerCase().includes(val));
     },
-    val => { document.getElementById('car-model').value = val; }
+    val => { 
+      document.getElementById('car-model').value = val; 
+      // Автоматическое предложение поколений
+      const gens = GENERATIONS[val] || [];
+      const genGroup = document.getElementById('gen-group');
+      const genSelect = document.getElementById('car-generation');
+      if (gens.length > 0) {
+        genSelect.innerHTML = gens.map(g => `<option value="${g}">${g}</option>`).join('');
+        genGroup.style.display = 'block';
+      } else {
+        genGroup.style.display = 'none';
+      }
+    }
   );
 
   // ====================================================================
-  // 9. ОТЧЕТ И PDF
+  // 9. ИСТОРИЯ И ОТЧЕТ
   // ====================================================================
-  function updateReportSelect() {
-    const sel = document.getElementById('report-car-select');
-    sel.innerHTML = userCars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
-    if (currentCarId && userCars.find(c => c.id === currentCarId)) {
-      sel.value = currentCarId;
-    } else if (userCars.length > 0) {
-      currentCarId = userCars[0].id;
-      sel.value = currentCarId;
-    }
-  }
-
-  function renderReport() {
-    const carId = document.getElementById('report-car-select').value;
-    const area = document.getElementById('report-area');
-    if (!carId) { area.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Добавьте авто</div>'; return; }
-
-    const car = userCars.find(c => c.id === carId);
-    const carExpenses = userExpenses.filter(e => e.car_id === carId).sort((a,b) => new Date(b.date) - new Date(a.date));
-    const total = carExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-    const rows = carExpenses.map(e => {
-      const cat = CATEGORIES[e.category] || CATEGORIES.other;
-      return `<tr><td>${fmtDate(e.date)}</td><td>${cat.name}</td><td>${e.description || '—'}</td><td class="num">${fmtMoney(e.amount)}</td></tr>`;
-    }).join('');
-
-    area.innerHTML = `
-      <div class="report-document" id="print-area">
-        <div class="report-header">
-          <div>
-            <img src="Favicon-32x32.png" class="report-logo" onerror="this.style.display='none'">
-            <h1>Гараж</h1>
-            <div style="font-size:14px; color:#333; margin-top:5px;"><b>${car.brand} ${car.model}</b> ${car.engine ? '· ' + car.engine + ' л' : ''} · ${car.plate}</div>
-          </div>
-          <div style="font-size:12px; text-align:right; color:#000;">
-            Дата формирования:<br><b>${fmtDate(new Date().toISOString())}</b>
-          </div>
-        </div>
-        ${carExpenses.length ? `
-          <table>
-            <thead><tr><th>Дата</th><th>Категория</th><th>Описание</th><th class="num">Сумма</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <div class="r-total">Итого: ${fmtMoney(total)}</div>
-        ` : '<div style="text-align:center; padding:30px; color:#888; border: 1px dashed #ccc; border-radius:8px;">Расходов нет</div>'}
-      </div>
-    `;
-  }
-
-  function downloadPDF() {
-    const element = document.getElementById('print-area');
-    if (!element) return alert('Сначала сформируйте отчёт');
+  function renderHistoryList() {
+    const carId = currentCarId;
+    const sortType = document.getElementById('sort-select').value;
+    const list = document.getElementById('history-list');
     
-    // Временно делаем элемент видимым на весь экран для корректного рендера
-    const originalDisplay = element.style.display;
-    element.style.display = 'block';
-    element.style.width = '800px';
-    element.style.position = 'absolute';
-    element.style.left = '-9999px';
+    if (!carId) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Добавьте авто</div>'; return; }
 
-    const opt = {
-      margin: 10,
-      filename: `Отчет_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    let carExpenses = userExpenses.filter(e => e.car_id === carId);
     
-    html2pdf().set(opt).from(element).save().then(() => {
-      element.style.width = '100%';
-      element.style.position = 'static';
-      element.style.left = 'auto';
-      element.style.display = originalDisplay;
-    }).catch(err => {
-      alert('Ошибка при создании PDF: ' + err);
-      element.style.width = '100%';
-      element.style.position = 'static';
-      element.style.left = 'auto';
-      element.style.display = originalDisplay;
+    carExpenses.sort((a, b) => {
+      if (sortType === 'newest') return new Date(b.date) - new Date(a.date);
+      if (sortType === 'oldest') return new Date(a.date) - new Date(b.date);
+      if (sortType === 'expensive') return b.amount - a.amount;
+      if (sortType === 'cheapest') return a.amount - b.amount;
+      return 0;
     });
+
+    if (carExpenses.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Расходов нет</div>';
+      return;
+    }
+
+    list.innerHTML = carExpenses.map(e => {
+      const cat = CATEGORIES[e.category] || CATEGORIES.other;
+      return `
+      <div class="expense-item">
+        <div class="expense-icon">${cat.icon}</div>
+        <div class="expense-info">
+          <div class="expense-title">${cat.name} ${e.description ? '· '+e.description : ''}</div>
+          <div class="expense-date">${fmtDate(e.date)}</div>
+        </div>
+        <div class="expense-amount">${fmtMoney(e.amount)}</div>
+        <div class="expense-actions">
+          <button class="action-btn" onclick="openExpenseModal('${e.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+          <button class="action-btn delete" onclick="deleteExpense('${e.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ====================================================================
+  // 10. ГЕНЕРАЦИЯ PDF (Используем jspdf программно)
+  // ====================================================================
+  function downloadPDF() {
+    const carId = currentCarId;
+    if (!carId) return alert('Сначала выберите автомобиль');
+    
+    const car = userCars.find(c => c.id === carId);
+    const carExpenses = userExpenses.filter(e => e.car_id === carId).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const total = carExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Шапка
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.setTextColor(40, 40, 40);
+    doc.text("ГАРАЖ", 14, 24);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Отчёт по расходам на автомобиль", 14, 30);
+
+    // Информация об авто
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${car.brand} ${car.model} ${car.generation ? '(' + car.generation + ')' : ''}`, 14, 45);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text(`Госномер: ${car.plate}`, 14, 52);
+    doc.text(`Год выпуска: ${car.year || '—'}`, 14, 58);
+    doc.text(`Объём двигателя: ${car.engine ? car.engine + ' л' : '—'}`, 14, 64);
+    doc.text(`Цвет: ${car.color || '—'}`, 14, 70);
+
+    doc.text(`Дата формирования: ${fmtDate(new Date().toISOString())}`, 140, 52);
+
+    // Таблица
+    const tableData = carExpenses.map(e => [
+      fmtDate(e.date),
+      CATEGORIES[e.category]?.name || 'Другое',
+      e.description || '—',
+      fmtMoney(e.amount)
+    ]);
+    
+    tableData.push(['', '', 'ИТОГО:', fmtMoney(total)]);
+
+    doc.autoTable({
+      startY: 80,
+      head: [['Дата', 'Категория', 'Описание', 'Сумма']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 204, 0], textColor: [0, 0, 0], fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 4 },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 35, halign: 'right' }
+      },
+      didParseCell: function (data) {
+        if (data.row.index === tableData.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
+      }
+    });
+
+    // Сохранение
+    doc.save(`Отчет_${car.brand}_${car.model}.pdf`);
   }
 </script>
 </body>
