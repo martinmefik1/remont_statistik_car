@@ -364,7 +364,19 @@
     <div class="modal-header"><div class="modal-title" id="exp-modal-title">Новый расход</div><button class="close-btn" onclick="closeModal('expense-modal')">✕</button></div>
     <form id="expense-form">
       <input type="hidden" id="exp-id">
-      <div class="input-group"><label>Категория</label><select id="exp-category"><option value="fuel">Топливо</option><option value="service">ТО / Ремонт</option><option value="parking">Парковка</option><option value="wash">Мойка</option><option value="tires">Шины / Колёса</option><option value="fine">Штраф</option><option value="other">Другое</option></select></div>
+      <div class="input-group">
+        <label>Категория</label>
+        <select id="exp-category">
+          <option value="fuel">Топливо</option>
+          <option value="service">ТО / Ремонт</option>
+          <option value="parts">Запчасти</option>
+          <option value="parking">Парковка</option>
+          <option value="wash">Мойка</option>
+          <option value="tires">Шины / Колёса</option>
+          <option value="fine">Штраф</option>
+          <option value="other">Другое</option>
+        </select>
+      </div>
       <div class="input-group"><label>Сумма (₽)</label><input type="number" id="exp-amount" required placeholder="0" min="0" step="0.01"></div>
       <div class="input-group"><label>Описание (необязательно)</label><input type="text" id="exp-desc" placeholder="Например: замена масла"></div>
       
@@ -502,6 +514,7 @@
   const CATEGORIES = { 
     fuel: { name: 'Топливо', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18"></path><path d="M4 12h10"></path><path d="M14 8h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"></path><path d="M18 10V6"></path><path d="M18 14v4a2 2 0 0 1-2 2h-2"></path><path d="M2 22h14"></path></svg>' }, 
     service: { name: 'ТО / Ремонт', icon: '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>' }, 
+    parts: { name: 'Запчасти', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' },
     parking: { name: 'Парковка', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>' }, 
     wash: { name: 'Мойка', icon: '<svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' }, 
     tires: { name: 'Шины', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>' }, 
