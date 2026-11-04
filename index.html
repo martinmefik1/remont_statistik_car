@@ -181,8 +181,8 @@
   .report-header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
   .report-logo { width: 48px; height: 48px; object-fit: contain; margin-bottom: 10px; }
   .report-document table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-  .report-document th { text-align: left; border-bottom: 1px solid #000; padding: 8px 0; font-size: 12px; text-transform: uppercase; color: #333; }
-  .report-document td { padding: 8px 0; border-bottom: 1px solid #eee; color: #000; }
+  .report-document th { text-align: left; border-bottom: 1px solid #000; padding: 8px 12px; font-size: 12px; text-transform: uppercase; color: #333; }
+  .report-document td { padding: 8px 12px; border-bottom: 1px solid #eee; color: #000; }
   .report-document .num { text-align: right; }
   .report-document .r-total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; color: #000; }
 
@@ -293,7 +293,7 @@
         </div>
         <div class="report-buttons">
           <button class="btn-print" onclick="window.print()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Печать</button>
-          <button class="btn-pdf" onclick="downloadPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Скачать PDF</button>
+          <button class="btn-pdf" onclick="shareReport()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Поделиться</button>
         </div>
       </div>
 
@@ -653,7 +653,9 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('screen-' + tabId).classList.add('active');
     document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-    document.getElementById('fab-add-btn').style.display = (tabId === 'home' || tabId === 'stats') ? 'flex' : 'none';
+    
+    // Скрываем кнопку добавления расхода на экране отчета
+    document.getElementById('fab-add-btn').style.display = (tabId === 'home') ? 'flex' : 'none';
     
     localStorage.setItem('activeTab', tabId);
 
@@ -1115,7 +1117,7 @@
     const total = carExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     const rows = carExpenses.map(e => {
       const cat = CATEGORIES[e.category] || CATEGORIES.other;
-      return `<tr><td>${fmtDate(e.date)}</td><td>${cat.name}</td><td>${e.description || '—'}</td><td class="num">${fmtMoney(e.amount)}</td></tr>`;
+      return `<tr><td>${fmtDate(e.date)}</td><td style="padding-right: 20px;">${cat.name}</td><td>${e.description || '—'}</td><td class="num">${fmtMoney(e.amount)}</td></tr>`;
     }).join('');
 
     area.innerHTML = `
@@ -1132,7 +1134,7 @@
         </div>
         ${carExpenses.length ? `
           <table>
-            <thead><tr><th>Дата</th><th>Категория</th><th>Описание</th><th class="num">Сумма</th></tr></thead>
+            <thead><tr><th>Дата</th><th style="padding-right: 20px;">Категория</th><th>Описание</th><th class="num">Сумма</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
           <div class="r-total">Итого: ${fmtMoney(total)}</div>
@@ -1141,7 +1143,7 @@
     `;
   }
 
-  function downloadPDF() {
+  function shareReport() {
     const element = document.getElementById('print-area');
     if (!element) return alert('Сначала сформируйте отчёт');
 
@@ -1154,17 +1156,42 @@
 
     const opt = {
       margin: 10,
-      filename: `Отчет_${new Date().toISOString().split('T')[0]}.pdf`,
+      filename: `Отчет_Гараж_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, logging: false },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    html2pdf().set(opt).from(element).save().then(() => {
+    html2pdf().set(opt).from(element).outputPdf('blob').then((blob) => {
+      // Возвращаем стили обратно
       element.style.width = '100%';
       element.style.position = 'static';
       element.style.left = 'auto';
       element.style.display = originalDisplay;
+
+      const file = new File([blob], opt.filename, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          files: [file],
+          title: 'Отчёт по расходам',
+          text: 'Отчёт по расходам на автомобиль'
+        }).catch((error) => {
+          console.log('Ошибка шеринга', error);
+          // Если пользователь отменил или ошибка — не делаем ничего
+        });
+      } else {
+        // Fallback: скачивание файла, если API "Поделиться" недоступно
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = opt.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('Браузер не поддерживает системное меню "Поделиться". Отчет скачан.');
+      }
     }).catch(err => {
       alert('Ошибка при создании PDF: ' + err);
       element.style.width = '100%';
