@@ -14,6 +14,10 @@
     --danger: #ff4444; --success: #22c55e; --radius: 20px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  
+  /* Фикс горизонтального скролла на мобильных */
+  html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
+  
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
 
   /* Скрываем экраны до инициализации */
@@ -30,7 +34,7 @@
   ::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffcc00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'); background-size: 10px; background-position: center; background-repeat: no-repeat; }
 
   /* Всплывающие уведомления (Toasts) */
-  .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+  .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; background: transparent; }
   .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: slideDown 0.3s ease forwards; pointer-events: auto; }
   .toast-success { background: var(--success); }
   .toast-error { background: var(--danger); }
@@ -39,14 +43,15 @@
   @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
   /* Стили экранов авторизации */
-  .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+  .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; overflow-x: hidden; }
   .auth-screen.active { display: flex; animation: fadeIn 0.4s ease; }
   .auth-card { background: var(--surface); padding: 40px 30px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
   
-  /* Увеличенный логотип */
-  .auth-logo { width: 180px; height: 180px; margin-bottom: 20px; object-fit: contain; }
-  .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--yellow); }
+  /* Увеличенный логотип и уменьшенный отступ */
+  .auth-logo { width: 220px; height: 220px; margin-bottom: 5px; object-fit: contain; }
+  .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; margin-top: 0; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
+  
   .auth-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
   .auth-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.15); background: rgba(255,204,0,0.02); }
   .auth-input::placeholder { color: rgba(255,255,255,0.3); }
@@ -86,9 +91,10 @@
 
   .header { padding: 20px 20px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
   .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  .logo-img { width: 75px; height: 75px; object-fit: contain; }
+  /* Увеличенный логотип в 2 раза */
+  .logo-img { width: 130px; height: 130px; object-fit: contain; }
 
-  .main-content { flex: 1; overflow-y: auto; padding: 0 20px 180px; position: relative; }
+  .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 20px 180px; position: relative; }
   .screen { display: none; animation: fadeIn 0.3s ease; }
   .screen.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -108,15 +114,15 @@
   .section-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 15px; }
   .section-title { font-size: 18px; font-weight: 600; }
   .section-link { color: var(--yellow); font-size: 14px; text-decoration: none; font-weight: 500; cursor: pointer; }
-  .expense-list { display: flex; flex-direction: column; gap: 12px; }
-  .expense-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; }
+  .expense-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .expense-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; width: 100%; max-width: 100%; overflow: hidden; }
   .expense-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--surface-hover); flex-shrink: 0; }
   .expense-icon svg { width: 24px; height: 24px; stroke: var(--yellow); fill: none; stroke-width: 2; }
   .expense-info { flex: 1; min-width: 0; }
   .expense-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .expense-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  .expense-amount { font-size: 16px; font-weight: 700; text-align: right; }
-  .expense-actions { display: flex; gap: 4px; margin-left: 8px; }
+  .expense-amount { font-size: 16px; font-weight: 700; text-align: right; flex-shrink: 0; }
+  .expense-actions { display: flex; gap: 4px; margin-left: 8px; flex-shrink: 0; }
   .action-btn { background: var(--surface-hover); border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; cursor: pointer; transition: all 0.2s; }
   .action-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
   .action-btn.delete:hover { color: var(--danger); background: rgba(255,68,68,0.1); }
@@ -138,14 +144,15 @@
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .modal-title { font-size: 20px; font-weight: 700; }
   .close-btn { background: var(--surface-hover); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: grid; place-items: center; }
-  .input-group { margin-bottom: 16px; position: relative; }
+  .input-group { margin-bottom: 16px; position: relative; width: 100%; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-  .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; }
+  
+  /* Фикс календарика и времени под темную тему */
+  .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; color-scheme: dark; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
+  
   .btn-submit { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
   .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
-  
-  /* Кастомный календарь */
   .date-display { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
   .date-display::after { content: '📅'; font-size: 18px; }
   .custom-calendar { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-top: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; }
@@ -159,24 +166,18 @@
   .cal-day.today { border: 1px solid var(--yellow); }
   .cal-day.selected { background: var(--yellow); color: #000; font-weight: 700; }
   .cal-day.empty { pointer-events: none; }
-
-  /* Список авто */
-  .car-list { display: flex; flex-direction: column; gap: 12px; }
-  .car-card { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; border: 2px solid transparent; cursor: pointer; transition: border-color 0.2s; }
+  .car-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .car-card { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; border: 2px solid transparent; cursor: pointer; transition: border-color 0.2s; width: 100%; overflow: hidden; }
   .car-card.active { border-color: var(--yellow); }
   .car-logo { width: 56px; height: 56px; background: var(--surface-hover); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
   .car-logo img { width: 40px; height: 40px; object-fit: contain; }
-  .car-info { flex: 1; }
-  .car-name { font-size: 16px; font-weight: 600; }
+  .car-info { flex: 1; min-width: 0; }
+  .car-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .car-plate { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-
-  /* Отчёт */
   .report-controls { background: var(--surface); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
   .report-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   .btn-print, .btn-preview { background: var(--yellow); color: #000; border: none; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-preview { background: var(--surface-hover); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
-  
-  /* Стили для генерации отчета */
   .report-document { background: #fff; color: #000; padding: 30px; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; width: 800px; box-sizing: border-box; }
   .report-document h1 { font-size: 24px; margin-bottom: 5px; font-weight: 800; }
   .report-header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
@@ -187,7 +188,6 @@
   .report-document .num { text-align: right; }
   .report-document .r-total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; color: #000; }
 
-  /* Модальное окно для быстрого просмотра отчета */
   #preview-modal .modal-sheet { max-width: 95vw; max-height: 95vh; background: #fff; padding: 0; border-radius: 0; }
   #preview-modal .modal-header { background: #1e1e1e; padding: 16px 20px; margin: 0; position: sticky; top: 0; z-index: 10; }
   #preview-modal .modal-title { color: #fff; }
@@ -195,7 +195,6 @@
   #preview-content { padding: 20px; overflow-y: auto; max-height: calc(95vh - 60px); }
   #preview-content .report-document { width: 100%; box-shadow: none; }
 
-  /* Стили для OTP (8 ячеек) */
   .reset-step { display: none; }
   .reset-step.active { display: block; animation: fadeIn 0.3s ease; }
   .otp-container { display: flex; gap: 6px; justify-content: center; margin: 25px 0; }
@@ -208,12 +207,7 @@
   .resend-btn:not(:disabled):hover { color: var(--yellow); }
   .resend-btn:disabled { color: #444; cursor: not-allowed; text-decoration: none; }
 
-  /* Кастомные окна подтверждения и ввода */
-  #custom-confirm-modal .modal-sheet, #custom-prompt-modal .modal-sheet {
-    max-width: 400px;
-    text-align: center;
-    padding: 30px 20px;
-  }
+  #custom-confirm-modal .modal-sheet, #custom-prompt-modal .modal-sheet { max-width: 400px; text-align: center; padding: 30px 20px; }
   .custom-icon { margin-bottom: 15px; display: flex; justify-content: center; }
   .custom-msg { font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: var(--text); }
   .custom-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; margin-bottom: 20px; }
@@ -284,14 +278,16 @@
       <span id="auth-error-text"></span>
     </div>
     
-    <input type="text" id="auth-login" class="auth-input" placeholder="Логин (для профиля)" style="display: none;">
-    <input type="email" id="auth-email" class="auth-input" placeholder="Email или Логин">
-    <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль">
-    <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
-    
-    <button class="auth-btn" id="auth-submit" onclick="handleAuth()">
-      <div class="spinner"></div><span>Войти</span>
-    </button>
+    <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+      <!-- Убран логин, только Email для регистрации, но для входа можно ввести логин -->
+      <input type="text" id="auth-email" class="auth-input" placeholder="Email или Логин (при входе)" required>
+      <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль (минимум 8 символов)" required>
+      <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
+      
+      <button type="submit" class="auth-btn" id="auth-submit">
+        <div class="spinner"></div><span>Войти</span>
+      </button>
+    </form>
     
     <div>
       <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()" style="display: none;">Нет аккаунта? Зарегистрироваться</a><br>
@@ -308,8 +304,10 @@
     
     <div id="reset-step-1" class="reset-step active">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите вашу почту, и мы отправим 8-значный код для сброса пароля.</p>
-      <div class="input-group"><label>Email</label><input type="email" id="reset-email" placeholder="example@mail.ru"></div>
-      <button type="button" class="btn-submit" id="reset-send-btn" onclick="requestPasswordReset()"><div class="spinner"></div><span>Отправить код</span></button>
+      <form onsubmit="event.preventDefault(); requestPasswordReset();">
+        <div class="input-group"><label>Email</label><input type="email" id="reset-email" placeholder="example@mail.ru" required></div>
+        <button type="submit" class="btn-submit" id="reset-send-btn"><div class="spinner"></div><span>Отправить код</span></button>
+      </form>
     </div>
 
     <div id="reset-step-2" class="reset-step">
@@ -322,9 +320,11 @@
 
     <div id="reset-step-3" class="reset-step">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Код верный! Придумайте новый пароль.</p>
-      <div class="input-group"><label>Новый пароль (только английские буквы и цифры, мин. 8)</label><input type="password" id="reset-new-pass" placeholder="Минимум 8 символов"></div>
-      <div class="input-group"><label>Повторите пароль</label><input type="password" id="reset-new-pass2" placeholder="Повторите пароль"></div>
-      <button type="button" class="btn-submit" id="reset-submit-btn" onclick="saveNewPassword()"><div class="spinner"></div><span>Сохранить пароль</span></button>
+      <form onsubmit="event.preventDefault(); saveNewPassword();">
+        <div class="input-group"><label>Новый пароль (только английские буквы и цифры, мин. 8)</label><input type="password" id="reset-new-pass" placeholder="Минимум 8 символов" required></div>
+        <div class="input-group"><label>Повторите пароль</label><input type="password" id="reset-new-pass2" placeholder="Повторите пароль" required></div>
+        <button type="submit" class="btn-submit" id="reset-submit-btn"><div class="spinner"></div><span>Сохранить пароль</span></button>
+      </form>
     </div>
   </div>
 </div>
@@ -383,11 +383,13 @@
       </div>
       <div class="total-card" style="margin-top: 0; padding: 20px; margin-bottom: 20px;">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">Новое напоминание</div>
-        <div class="input-group"><label>Название (например, Замена масла)</label><input type="text" id="rem-title" placeholder="Замена масла"></div>
-        <div class="input-group"><label>Дата</label><input type="date" id="rem-date"></div>
-        <div class="input-group"><label>Время</label><input type="time" id="rem-time"></div>
-        <div class="input-group"><label>Автомобиль (необязательно)</label><select id="rem-car"><option value="">Все автомобили</option></select></div>
-        <button class="btn-submit" onclick="addReminder()">Добавить напоминание</button>
+        <form onsubmit="event.preventDefault(); addReminder();">
+          <div class="input-group"><label>Название (например, Замена масла)</label><input type="text" id="rem-title" placeholder="Замена масла" required></div>
+          <div class="input-group"><label>Дата</label><input type="date" id="rem-date" required></div>
+          <div class="input-group"><label>Время</label><input type="time" id="rem-time" required></div>
+          <div class="input-group"><label>Автомобиль (необязательно)</label><select id="rem-car"><option value="">Все автомобили</option></select></div>
+          <button type="submit" class="btn-submit">Добавить напоминание</button>
+        </form>
       </div>
       <div class="glass card" style="padding: 20px;">
         <div style="font-weight: 600; font-size: 14px; margin-bottom: 14px;">Мои напоминания</div>
@@ -449,7 +451,7 @@
 <div class="modal-overlay" id="expense-modal">
   <div class="modal-sheet">
     <div class="modal-header"><div class="modal-title" id="exp-modal-title">Новый расход</div><button class="close-btn" onclick="closeModal('expense-modal')">✕</button></div>
-    <form id="expense-form">
+    <form id="expense-form" onsubmit="event.preventDefault(); saveExpense();">
       <input type="hidden" id="exp-id">
       <div class="input-group"><label>Категория</label><select id="exp-category"><option value="fuel">Топливо</option><option value="service">ТО / Ремонт</option><option value="parts">Запчасти</option><option value="parking">Парковка</option><option value="wash">Мойка</option><option value="tires">Шины / Колёса</option><option value="fine">Штраф</option><option value="other">Другое</option></select></div>
       <div class="input-group"><label>Сумма (₽)</label><input type="number" id="exp-amount" required placeholder="0" min="0" step="0.01"></div>
@@ -476,7 +478,7 @@
 <div class="modal-overlay" id="car-modal">
   <div class="modal-sheet">
     <div class="modal-header"><div class="modal-title" id="car-modal-title">Новый автомобиль</div><button class="close-btn" onclick="closeModal('car-modal')">✕</button></div>
-    <form id="car-form">
+    <form id="car-form" onsubmit="event.preventDefault(); saveCar();">
       <input type="hidden" id="car-id">
       <div class="input-group"><label>Марка</label><input type="text" id="car-brand" required placeholder="Например: Toyota" autocomplete="off"><div class="autocomplete-list" id="brand-suggest" style="position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--surface-hover); border-radius:12px; margin-top:4px; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.5); max-height:150px; overflow-y:auto;"></div></div>
       <div class="input-group"><label>Модель</label><input type="text" id="car-model" required placeholder="Например: Camry" autocomplete="off"><div class="autocomplete-list" id="model-suggest" style="position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--surface-hover); border-radius:12px; margin-top:4px; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.5); max-height:150px; overflow-y:auto;"></div></div>
@@ -660,13 +662,11 @@
     document.getElementById('auth-email').value = '';
     document.getElementById('auth-pass').value = '';
     document.getElementById('auth-pass2').value = '';
-    document.getElementById('auth-login').value = '';
     document.getElementById('auth-title').textContent = isReg ? 'Регистрация' : 'Вход';
     document.getElementById('auth-sub').textContent = isReg ? 'Создайте аккаунт для учёта' : 'Войдите, чтобы продолжить';
     const submitBtnSpan = document.querySelector('#auth-submit span');
     if (submitBtnSpan) submitBtnSpan.textContent = isReg ? 'Зарегистрироваться' : 'Войти';
     document.getElementById('auth-pass2').style.display = isReg ? 'block' : 'none';
-    document.getElementById('auth-login').style.display = isReg ? 'block' : 'none';
     document.getElementById('forgot-pass-btn').style.display = isReg ? 'none' : 'inline-block';
     document.getElementById('auth-toggle').style.display = 'none';
   }
@@ -682,28 +682,42 @@
     if (!loginInput) return showAuthError('Введите Email или Логин');
     if (pass.length < 8 || !/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(pass)) return showAuthError('Пароль должен быть не менее 8 символов (только английские буквы и цифры)');
 
+    if (isRegisterMode) {
+      if (!loginInput.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginInput)) return showAuthError('Введите корректный Email');
+    } else {
+      // Если введен логин без @, ищем почту в profiles
+      if (!loginInput.includes('@')) {
+         btn.classList.add('loading'); btn.disabled = true;
+         const { data: profile } = await supabaseClient.from('profiles').select('email').eq('login', loginInput).single();
+         if (profile && profile.email) {
+            loginInput = profile.email;
+         } else {
+            btn.classList.remove('loading'); btn.disabled = false;
+            return showAuthError('Пользователь с таким логином не найден');
+         }
+      }
+    }
+
     btn.classList.add('loading');
     btn.disabled = true;
 
     try {
-      let email = loginInput;
-      if (!loginInput.includes('@')) {
-        throw new Error('Пожалуйста, введите Email для входа');
-      }
-
       if (isRegisterMode) {
-        const login = document.getElementById('auth-login').value.trim();
-        if (login.length < 3) throw new Error('Логин должен быть не менее 3 символов');
         if (pass !== pass2) throw new Error('Пароли не совпадают');
+        const defaultLogin = loginInput.split('@')[0];
         
         const { data, error } = await supabaseClient.auth.signUp({ 
-          email: email, 
+          email: loginInput, 
           password: pass,
-          options: { data: { login: login }, emailRedirectTo: window.location.origin + window.location.pathname }
+          options: { data: { login: defaultLogin }, emailRedirectTo: window.location.origin + window.location.pathname + '?confirmed=true' }
         });
         
         if (error) throw error;
         
+        if (data.user) {
+          await supabaseClient.from('profiles').insert({ id: data.user.id, login: defaultLogin, email: loginInput });
+        }
+
         if (data.user && !data.session) {
           showAuthError('Аккаунт создан! Проверьте почту.');
           document.getElementById('auth-error').style.color = '#4ade80';
@@ -719,8 +733,13 @@
           await loginUser({ user: data.user });
         }
       } else {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
-        if (error) throw error;
+        const { error } = await supabaseClient.auth.signInWithPassword({ email: loginInput, password: pass });
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error('Email не подтвержден. Пожалуйста, проверьте почту.');
+          }
+          throw error;
+        }
       }
     } catch (error) {
       showAuthError(error.message === 'Invalid login credentials' ? 'Неверный email или пароль' : error.message);
@@ -1173,10 +1192,9 @@
   }
 
   // ====================================================================
-  // 9. ФОРМЫ ДАННЫХ
+  // 9. СОХРАНЕНИЕ ДАННЫХ
   // ====================================================================
-  document.getElementById('expense-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  async function saveExpense() {
     const id = document.getElementById('exp-id').value;
     const data = {
       user_id: currentUser.id, car_id: document.getElementById('exp-car').value, category: document.getElementById('exp-category').value, amount: parseFloat(document.getElementById('exp-amount').value), description: document.getElementById('exp-desc').value.trim(), date: document.getElementById('exp-date').value, mileage: document.getElementById('exp-mileage').value.trim() || null
@@ -1188,12 +1206,11 @@
       const { data: res, error } = await supabaseClient.from('expenses').insert([data]).select(); if (error) return showToast(error.message, 'error'); userExpenses.push(res[0]); showToast('Расходы успешно внесены', 'success');
     }
     closeModal('expense-modal'); renderAll(); if (document.getElementById('all-expenses-modal').classList.contains('open')) renderAllExpensesList();
-  });
+  }
 
   document.getElementById('car-plate').addEventListener('input', function(e) { let val = e.target.value.toUpperCase().replace(/[^АВЕКМНОРСТУХ0-9]/g, ''); if (val.length > 9) val = val.slice(0, 9); e.target.value = val; });
 
-  document.getElementById('car-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  async function saveCar() {
     const id = document.getElementById('car-id').value; const genValue = document.getElementById('car-generation').value; const plate = document.getElementById('car-plate').value;
     if (!/^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/.test(plate)) return showToast('Неверный формат госномера. Пример: А123ВС77', 'error');
     const data = { user_id: currentUser.id, brand: document.getElementById('car-brand').value.trim(), model: document.getElementById('car-model').value.trim(), year: document.getElementById('car-year').value.trim(), generation: document.getElementById('gen-group').style.display !== 'none' && genValue ? genValue : null, engine: document.getElementById('car-engine').value.trim(), plate: plate, color: document.getElementById('car-color').value.trim() };
@@ -1204,7 +1221,7 @@
       const { data: res, error } = await supabaseClient.from('cars').insert([data]).select(); if (error) return showToast(error.message, 'error'); userCars.push(res[0]); if (!currentCarId) { currentCarId = res[0].id; localStorage.setItem('currentCarId', currentCarId); } showToast('Автомобиль успешно добавлен', 'success');
     }
     closeModal('car-modal'); renderAll();
-  });
+  }
 
   // ====================================================================
   // 10. АВТОДОПОЛНЕНИЕ
