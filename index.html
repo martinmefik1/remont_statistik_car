@@ -44,12 +44,10 @@
   .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
   
-  /* Красивые инпуты */
   .auth-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
   .auth-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.15); background: rgba(255,204,0,0.02); }
   .auth-input::placeholder { color: rgba(255,255,255,0.3); }
 
-  /* Кнопки */
   .auth-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; margin-bottom: 12px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; }
   .auth-btn:active { transform: scale(0.98); }
   .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
@@ -60,7 +58,6 @@
   .auth-link:hover { color: #fff; }
   .auth-link.muted { color: var(--text-muted); font-size: 13px; font-weight: 400; }
   
-  /* Красивое сообщение об ошибке */
   .auth-error { display: none; align-items: center; gap: 10px; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); color: #ff6b6b; padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; margin-bottom: 20px; text-align: left; line-height: 1.4; animation: fadeIn 0.3s ease; }
   .auth-error.active { display: flex; }
   .auth-error svg { flex-shrink: 0; }
@@ -68,7 +65,6 @@
   .auth-features { text-align: left; margin: 20px 0 30px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
   .auth-features li { margin-bottom: 10px; list-style: none; display: flex; align-items: center; gap: 10px; }
 
-  /* Анимация загрузки (спиннер) */
   .spinner { width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading .spinner { display: block; }
@@ -202,6 +198,10 @@
   .report-document .num { text-align: right; }
   .report-document .r-total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; color: #000; }
 
+  /* --- СТИЛИ ДЛЯ ШАГОВ СБРОСА ПАРОЛЯ --- */
+  .reset-step { display: none; }
+  .reset-step.active { display: block; animation: fadeIn 0.3s ease; }
+
   /* --- СТИЛИ ДЛЯ OTP-КОДА (6 ЯЧЕЕК) --- */
   .otp-container { display: flex; gap: 8px; justify-content: center; margin: 25px 0; }
   .otp-input { width: 45px; height: 55px; text-align: center; font-size: 24px; font-weight: bold; border-radius: 12px; background: #121212; border: 2px solid rgba(255,255,255,0.1); color: white; outline: none; transition: all 0.2s ease; }
@@ -247,7 +247,6 @@
     <div class="auth-title" id="auth-title">Вход</div>
     <div class="auth-sub" id="auth-sub">Войдите, чтобы продолжить</div>
     
-    <!-- Красивое сообщение об ошибке -->
     <div class="auth-error" id="auth-error">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
       <span id="auth-error-text"></span>
@@ -264,7 +263,7 @@
     
     <div>
       <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()" style="display: none;">Нет аккаунта? Зарегистрироваться</a><br>
-      <a class="auth-link muted" id="forgot-pass-btn" onclick="openResetModal()">Забыли пароль?</a>
+      <a class="auth-link muted" id="forgot-pass-btn" href="#" onclick="event.preventDefault(); openResetModal();">Забыли пароль?</a>
     </div>
     <div style="margin-top: 15px;"><a class="auth-link muted" onclick="showWelcomeScreen()">← Назад</a></div>
   </div>
@@ -279,7 +278,7 @@
     </div>
     
     <!-- Шаг 1: Ввод Email -->
-    <div id="reset-step-1">
+    <div id="reset-step-1" class="reset-step active">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите вашу почту, и мы отправим 6-значный код для сброса пароля.</p>
       <div class="input-group">
         <label>Email</label>
@@ -291,7 +290,7 @@
     </div>
 
     <!-- Шаг 2: Ввод 6-значного кода -->
-    <div id="reset-step-2" style="display: none;">
+    <div id="reset-step-2" class="reset-step">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px; text-align: center;">Мы отправили код на <b id="reset-email-display"></b>.<br>Введите его ниже.</p>
       
       <div class="otp-container">
@@ -307,7 +306,7 @@
     </div>
 
     <!-- Шаг 3: Новый пароль -->
-    <div id="reset-step-3" style="display: none;">
+    <div id="reset-step-3" class="reset-step">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Код верный! Придумайте новый пароль (минимум 8 символов).</p>
       <div class="input-group">
         <label>Новый пароль</label>
@@ -632,7 +631,6 @@
   function setAuthMode(isReg) {
     isRegisterMode = isReg;
     
-    // Очистка полей и ошибок
     hideAuthError();
     document.getElementById('auth-email').value = '';
     document.getElementById('auth-pass').value = '';
@@ -713,20 +711,18 @@
   // 4. СБРОС ПАРОЛЯ (OTP С 6 ЯЧЕЙКАМИ И ТАЙМЕРОМ)
   // ====================================================================
   function openResetModal() {
-    document.getElementById('reset-step-1').style.display = 'block';
-    document.getElementById('reset-step-2').style.display = 'none';
-    document.getElementById('reset-step-3').style.display = 'none';
+    document.querySelectorAll('.reset-step').forEach(el => el.classList.remove('active'));
+    document.getElementById('reset-step-1').classList.add('active');
+    
     document.getElementById('reset-email').value = '';
     document.getElementById('reset-new-pass').value = '';
     
-    // Сброс ячеек OTP
     document.querySelectorAll('.otp-input').forEach(inp => {
       inp.value = '';
       inp.classList.remove('success', 'error');
       inp.disabled = false;
     });
 
-    // Сброс таймера
     if (resendTimer) clearInterval(resendTimer);
     const resendBtn = document.getElementById('resend-btn');
     resendBtn.disabled = true;
@@ -736,7 +732,8 @@
   }
 
   async function requestPasswordReset() {
-    const email = document.getElementById('reset-email').value.trim();
+    const emailInput = document.getElementById('reset-email');
+    const email = resetEmail || emailInput.value.trim();
     const btn = document.getElementById('reset-send-btn');
     
     if (resetEmail !== email && (!email || !email.includes('@'))) {
@@ -747,19 +744,15 @@
     btn.disabled = true;
 
     try {
-      const targetEmail = resetEmail || email;
-      const { error } = await supabaseClient.auth.resetPasswordForEmail(targetEmail);
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
       if (error) throw error;
       
-      resetEmail = targetEmail;
+      resetEmail = email;
       document.getElementById('reset-email-display').textContent = resetEmail;
       
-      // Переход на Шаг 2
-      document.getElementById('reset-step-1').style.display = 'none';
-      document.getElementById('reset-step-2').style.display = 'block';
-      document.getElementById('reset-step-3').style.display = 'none';
+      document.querySelectorAll('.reset-step').forEach(el => el.classList.remove('active'));
+      document.getElementById('reset-step-2').classList.add('active');
       
-      // Сброс ячеек и фокус на первую
       const otpInputs = document.querySelectorAll('.otp-input');
       otpInputs.forEach(inp => {
         inp.value = '';
@@ -769,8 +762,6 @@
       otpInputs[0].focus();
 
       showToast('Код отправлен на почту', 'success');
-      
-      // Запуск таймера
       startResendTimer();
 
     } catch (error) {
@@ -805,31 +796,24 @@
   const otpInputs = document.querySelectorAll('.otp-input');
   
   otpInputs.forEach((input, index) => {
-    // Ввод цифры
     input.addEventListener('input', (e) => {
       const val = e.target.value;
       if (!/^\d$/.test(val)) {
         e.target.value = '';
         return;
       }
-      
-      // Переход к следующей ячейке
       if (val && index < otpInputs.length - 1) {
         otpInputs[index + 1].focus();
       }
-      
-      // Если все ячейки заполнены - проверяем
       checkOtpComplete();
     });
 
-    // Обработка Backspace
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace' && !e.target.value && index > 0) {
         otpInputs[index - 1].focus();
       }
     });
 
-    // Вставка из буфера обмена
     input.addEventListener('paste', (e) => {
       e.preventDefault();
       const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
@@ -849,7 +833,6 @@
     otpInputs.forEach(inp => code += inp.value);
     
     if (code.length === 6) {
-      // Блокируем поля
       otpInputs.forEach(inp => inp.disabled = true);
       
       try {
@@ -861,18 +844,16 @@
 
         if (error) throw new Error('Неверный или просроченный код');
 
-        // Успех - зеленый цвет
         otpInputs.forEach(inp => inp.classList.add('success'));
         showToast('Код верный!', 'success');
         
         setTimeout(() => {
-          document.getElementById('reset-step-2').style.display = 'none';
-          document.getElementById('reset-step-3').style.display = 'block';
+          document.querySelectorAll('.reset-step').forEach(el => el.classList.remove('active'));
+          document.getElementById('reset-step-3').classList.add('active');
           document.getElementById('reset-new-pass').focus();
         }, 800);
 
       } catch (error) {
-        // Ошибка - красный цвет и тряска
         otpInputs.forEach(inp => inp.classList.add('error'));
         showToast(error.message, 'error');
         
