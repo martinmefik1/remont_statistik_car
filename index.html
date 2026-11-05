@@ -202,9 +202,9 @@
   .reset-step { display: none; }
   .reset-step.active { display: block; animation: fadeIn 0.3s ease; }
 
-  /* --- СТИЛИ ДЛЯ OTP-КОДА (6 ЯЧЕЕК) --- */
-  .otp-container { display: flex; gap: 8px; justify-content: center; margin: 25px 0; }
-  .otp-input { width: 45px; height: 55px; text-align: center; font-size: 24px; font-weight: bold; border-radius: 12px; background: #121212; border: 2px solid rgba(255,255,255,0.1); color: white; outline: none; transition: all 0.2s ease; }
+  /* --- СТИЛИ ДЛЯ OTP-КОДА (8 ЯЧЕЕК) --- */
+  .otp-container { display: flex; gap: 6px; justify-content: center; margin: 25px 0; }
+  .otp-input { width: 38px; height: 50px; text-align: center; font-size: 20px; font-weight: bold; border-radius: 10px; background: #121212; border: 2px solid rgba(255,255,255,0.1); color: white; outline: none; transition: all 0.2s ease; }
   .otp-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2); transform: translateY(-2px); }
   .otp-input.success { border-color: var(--success); color: var(--success); background: rgba(34, 197, 94, 0.05); }
   .otp-input.error { border-color: var(--danger); color: var(--danger); background: rgba(239, 68, 68, 0.05); animation: shake 0.4s ease; }
@@ -279,17 +279,17 @@
     
     <!-- Шаг 1: Ввод Email -->
     <div id="reset-step-1" class="reset-step active">
-      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите вашу почту, и мы отправим 6-значный код для сброса пароля.</p>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите вашу почту, и мы отправим 8-значный код для сброса пароля.</p>
       <div class="input-group">
         <label>Email</label>
         <input type="email" id="reset-email" placeholder="example@mail.ru">
       </div>
-      <button class="btn-submit" id="reset-send-btn" onclick="requestPasswordReset()">
+      <button type="button" class="btn-submit" id="reset-send-btn" onclick="requestPasswordReset()">
         <div class="spinner"></div><span>Отправить код</span>
       </button>
     </div>
 
-    <!-- Шаг 2: Ввод 6-значного кода -->
+    <!-- Шаг 2: Ввод 8-значного кода -->
     <div id="reset-step-2" class="reset-step">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px; text-align: center;">Мы отправили код на <b id="reset-email-display"></b>.<br>Введите его ниже.</p>
       
@@ -300,9 +300,11 @@
         <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
         <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
         <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
       </div>
 
-      <button class="resend-btn" id="resend-btn" onclick="requestPasswordReset()" disabled>Отправить еще раз (60с)</button>
+      <button type="button" class="resend-btn" id="resend-btn" onclick="requestPasswordReset()" disabled>Отправить еще раз (60с)</button>
     </div>
 
     <!-- Шаг 3: Новый пароль -->
@@ -312,7 +314,7 @@
         <label>Новый пароль</label>
         <input type="password" id="reset-new-pass" placeholder="Минимум 8 символов">
       </div>
-      <button class="btn-submit" id="reset-submit-btn" onclick="saveNewPassword()">
+      <button type="button" class="btn-submit" id="reset-submit-btn" onclick="saveNewPassword()">
         <div class="spinner"></div><span>Сохранить пароль</span>
       </button>
     </div>
@@ -549,6 +551,7 @@
   let resetEmail = '';
   let resendTimer = null;
   let resendCountdown = 0;
+  let isSendingReset = false; // Защита от двойной отправки
 
   const CAR_DB = { 
     "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"], 
@@ -708,7 +711,7 @@
   }
 
   // ====================================================================
-  // 4. СБРОС ПАРОЛЯ (OTP С 6 ЯЧЕЙКАМИ И ТАЙМЕРОМ)
+  // 4. СБРОС ПАРОЛЯ (OTP С 8 ЯЧЕЙКАМИ И ТАЙМЕРОМ)
   // ====================================================================
   function openResetModal() {
     document.querySelectorAll('.reset-step').forEach(el => el.classList.remove('active'));
@@ -732,16 +735,26 @@
   }
 
   async function requestPasswordReset() {
+    if (isSendingReset) return; // ЗАЩИТА ОТ ДВОЙНОЙ ОТПРАВКИ
+    isSendingReset = true;
+
     const emailInput = document.getElementById('reset-email');
     const email = resetEmail || emailInput.value.trim();
-    const btn = document.getElementById('reset-send-btn');
+    const sendBtn = document.getElementById('reset-send-btn');
+    const resendBtn = document.getElementById('resend-btn');
     
     if (resetEmail !== email && (!email || !email.includes('@'))) {
+      isSendingReset = false;
       return showToast('Введите корректный Email', 'error');
     }
 
-    btn.classList.add('loading');
-    btn.disabled = true;
+    if (sendBtn) {
+      sendBtn.classList.add('loading');
+      sendBtn.disabled = true;
+    }
+    if (resendBtn) {
+      resendBtn.disabled = true;
+    }
 
     try {
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
@@ -767,8 +780,11 @@
     } catch (error) {
       showToast('Ошибка: ' + error.message, 'error');
     } finally {
-      btn.classList.remove('loading');
-      btn.disabled = false;
+      isSendingReset = false; // СБРАСЫВАЕМ ФЛАГ
+      if (sendBtn) {
+        sendBtn.classList.remove('loading');
+        sendBtn.disabled = false;
+      }
     }
   }
 
@@ -792,7 +808,7 @@
     }, 1000);
   }
 
-  // Логика ввода OTP
+  // Логика ввода OTP (8 ячеек)
   const otpInputs = document.querySelectorAll('.otp-input');
   
   otpInputs.forEach((input, index) => {
@@ -816,12 +832,12 @@
 
     input.addEventListener('paste', (e) => {
       e.preventDefault();
-      const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-      if (pastedData.length === 6) {
+      const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 8);
+      if (pastedData.length === 8) {
         otpInputs.forEach((inp, i) => {
           inp.value = pastedData[i];
         });
-        otpInputs[5].focus();
+        otpInputs[7].focus();
         checkOtpComplete();
       }
     });
@@ -832,7 +848,7 @@
     let code = '';
     otpInputs.forEach(inp => code += inp.value);
     
-    if (code.length === 6) {
+    if (code.length === 8) {
       otpInputs.forEach(inp => inp.disabled = true);
       
       try {
