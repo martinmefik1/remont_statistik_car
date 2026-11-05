@@ -55,20 +55,39 @@
   .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
   .auth-screen.active { display: flex; animation: fadeIn 0.4s ease; }
   .auth-card { background: var(--surface); padding: 40px 30px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
-  .auth-logo { width: 120px; height: 120px; margin-bottom: 20px; object-fit: contain; }
+  
+  /* Увеличенный логотип */
+  .auth-logo { width: 140px; height: 140px; margin-bottom: 20px; object-fit: contain; }
+  
   .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
-  .auth-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.2s; }
-  .auth-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.1); }
-  .auth-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; margin-bottom: 15px; transition: transform 0.1s; }
-  .auth-btn:active { transform: scale(0.98); }
-  .auth-link { color: var(--yellow); font-size: 14px; text-decoration: none; cursor: pointer; display: inline-block; margin: 5px 0; font-weight: 500; }
-  .auth-link.muted { color: var(--text-muted); font-size: 12px; font-weight: 400; }
-  .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 16px; line-height: 1.3; }
-  .auth-features { text-align: left; margin: 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-  .auth-features li { margin-bottom: 8px; list-style: none; display: flex; align-items: center; gap: 8px; }
+  
+  /* Красивые инпуты */
+  .auth-input { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
+  .auth-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.15); background: rgba(255,204,0,0.02); }
+  .auth-input::placeholder { color: rgba(255,255,255,0.3); }
 
-  /* Основное приложение */
+  /* Кнопки */
+  .auth-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; margin-bottom: 12px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; }
+  .auth-btn:active { transform: scale(0.98); }
+  .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+  .auth-btn-secondary { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.15); margin-bottom: 20px; }
+  .auth-btn-secondary:hover { background: rgba(255,255,255,0.05); }
+
+  .auth-link { color: var(--yellow); font-size: 14px; text-decoration: none; cursor: pointer; display: inline-block; margin: 8px 0; font-weight: 500; transition: color 0.2s; }
+  .auth-link:hover { color: #fff; }
+  .auth-link.muted { color: var(--text-muted); font-size: 13px; font-weight: 400; }
+  .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 18px; line-height: 1.3; font-weight: 500;}
+  .auth-features { text-align: left; margin: 20px 0 30px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .auth-features li { margin-bottom: 10px; list-style: none; display: flex; align-items: center; gap: 10px; }
+
+  /* Анимация загрузки (спиннер) */
+  .spinner { width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading .spinner { display: block; }
+  .loading span { display: none; }
+
+  /* Основное приложение (без изменений) */
   .app-container { width: 100%; max-width: 480px; height: 100vh; display: none; flex-direction: column; background: var(--bg); position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: max-width 0.3s ease; }
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
   
@@ -137,7 +156,7 @@
   .nav-item.active { color: var(--yellow); }
 
   /* Модалки */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: flex-end; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
   .modal-sheet { background: var(--surface); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
   @media (min-width: 900px) { .modal-overlay { align-items: center; } .modal-sheet { border-radius: 24px; max-width: 500px; animation: scaleIn 0.2s ease; } }
@@ -152,7 +171,8 @@
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
   .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
-  .btn-submit { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .btn-submit { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+  .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
   /* Кастомный календарь */
   .date-display { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
@@ -213,7 +233,8 @@
       <li>📊 Графики и статистика</li>
       <li>📄 Красивый отчёт в PDF</li>
     </ul>
-    <button class="auth-btn" onclick="showAuthScreen()">Создать гараж</button>
+    <button class="auth-btn" onclick="showAuthScreen(true)">Создать гараж</button>
+    <button class="auth-btn auth-btn-secondary" onclick="showAuthScreen(false)">Войти в гараж</button>
   </div>
 </div>
 
@@ -230,17 +251,57 @@
     <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль">
     <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
     
-    <button class="auth-btn" id="auth-submit" onclick="handleAuth()">Войти</button>
+    <button class="auth-btn" id="auth-submit" onclick="handleAuth()">
+      <div class="spinner"></div><span>Войти</span>
+    </button>
     
     <div>
-      <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</a><br>
-      <a class="auth-link muted" id="forgot-pass-btn" onclick="resetPassword()">Забыли пароль?</a>
+      <a class="auth-link" id="auth-toggle" onclick="toggleAuthMode()" style="display: none;">Нет аккаунта? Зарегистрироваться</a><br>
+      <a class="auth-link muted" id="forgot-pass-btn" onclick="openResetModal()">Забыли пароль?</a>
     </div>
     <div style="margin-top: 15px;"><a class="auth-link muted" onclick="showWelcomeScreen()">← Назад</a></div>
   </div>
 </div>
 
-<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+<!-- МОДАЛКА СБРОСА ПАРОЛЯ (OTP) -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Сброс пароля</div>
+      <button class="close-btn" onclick="closeModal('reset-modal')">✕</button>
+    </div>
+    
+    <!-- Шаг 1: Ввод Email -->
+    <div id="reset-step-1">
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите вашу почту, и мы отправим 6-значный код для сброса пароля.</p>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="reset-email" placeholder="example@mail.ru">
+      </div>
+      <button class="btn-submit" id="reset-send-btn" onclick="requestPasswordReset()">
+        <div class="spinner"></div><span>Отправить код</span>
+      </button>
+    </div>
+
+    <!-- Шаг 2: Ввод кода и нового пароля -->
+    <div id="reset-step-2" style="display: none;">
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Введите код из письма и придумайте новый пароль (минимум 8 символов).</p>
+      <div class="input-group">
+        <label>Код из письма</label>
+        <input type="text" id="reset-code" placeholder="123456" maxlength="6" style="letter-spacing: 5px; font-size: 20px; text-align: center;">
+      </div>
+      <div class="input-group">
+        <label>Новый пароль</label>
+        <input type="password" id="reset-new-pass" placeholder="Минимум 8 символов">
+      </div>
+      <button class="btn-submit" id="reset-submit-btn" onclick="verifyAndResetPassword()">
+        <div class="spinner"></div><span>Изменить пароль</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ (без изменений) -->
 <div class="app-container" id="app-container">
   <header class="header">
     <div class="logo-area" onclick="switchTab('home')">
@@ -250,8 +311,6 @@
   </header>
 
   <main class="main-content">
-    
-    <!-- ГЛАВНАЯ -->
     <section id="screen-home" class="screen active">
       <div class="home-left">
         <div class="total-card">
@@ -278,14 +337,12 @@
       </div>
     </section>
 
-    <!-- АВТОМОБИЛИ -->
     <section id="screen-cars" class="screen">
       <div class="section-header" style="margin-top: 10px;"><div class="section-title">Мои автомобили</div></div>
       <div class="car-list" id="cars-list"></div>
       <button class="btn-submit" style="background: var(--surface); color: var(--text); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;" onclick="openCarModal()">+ Добавить автомобиль</button>
     </section>
 
-    <!-- ИСТОРИЯ / ОТЧЕТ -->
     <section id="screen-stats" class="screen">
       <div class="section-header" style="margin-top: 10px;"><div class="section-title">Отчёт</div></div>
       
@@ -301,11 +358,8 @@
           </button>
         </div>
       </div>
-
-      <!-- Убрали предпросмотр отчета -->
     </section>
 
-    <!-- ПРОФИЛЬ -->
     <section id="screen-profile" class="screen">
       <div class="section-header" style="margin-top: 10px;"><div class="section-title">Профиль</div></div>
       <div class="total-card" style="margin-top: 0; text-align: center; padding: 30px 20px;">
@@ -314,7 +368,6 @@
         <div style="color: var(--text-muted); font-size: 13px;" id="profile-date">Дата регистрации</div>
       </div>
 
-      <!-- Поддержка -->
       <div class="total-card" style="margin-top: 15px; padding: 20px; text-align: left;">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 10px; color: var(--text);">Поддержка</div>
         <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Возникли вопросы или нашли ошибку? Напишите нам, и мы поможем.</div>
@@ -464,6 +517,7 @@
   let userExpenses = [];
   let currentCarId = null;
   let isRegisterMode = false;
+  let resetEmail = ''; // Для хранения email при сбросе
 
   const CAR_DB = { 
     "Lada": ["Vesta", "Granta", "Niva", "XRAY", "Largus", "Priora", "Kalina"], 
@@ -526,12 +580,6 @@
   const fmtDate = iso => { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
   const getBrandLogo = (brand) => { if (!brand) return ''; const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`; };
 
-  // Прячем экран приветствия, если есть сессия
-  if (Object.keys(localStorage).some(k => k.includes('auth-token'))) {
-    document.getElementById('welcome-screen').style.display = 'none';
-    document.body.insertAdjacentHTML('beforeend', '<div id="loading-screen" style="position:fixed;inset:0;background:#121212;z-index:9999;display:grid;place-items:center;color:#ffcc00;font-size:24px;font-weight:800;">Загрузка...</div>');
-  }
-
   // ====================================================================
   // 3. ЭКРАНЫ И АВТОРИЗАЦИЯ
   // ====================================================================
@@ -541,80 +589,177 @@
     document.getElementById('app-container').classList.remove('active');
     document.getElementById('welcome-screen').style.display = '';
   }
-  function showAuthScreen() {
+  
+  // Передаем isReg: true - регистрация, false - вход
+  function showAuthScreen(isReg) {
     document.getElementById('welcome-screen').classList.remove('active');
     document.getElementById('auth-screen').classList.add('active');
     document.getElementById('app-container').classList.remove('active');
-    setAuthMode(false);
+    setAuthMode(isReg);
   }
+
   function setAuthMode(isReg) {
     isRegisterMode = isReg;
+    
+    // Очистка полей и ошибок
+    document.getElementById('auth-error').textContent = '';
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-pass').value = '';
+    document.getElementById('auth-pass2').value = '';
+    document.getElementById('auth-login').value = '';
+
     document.getElementById('auth-title').textContent = isReg ? 'Регистрация' : 'Вход';
-    document.getElementById('auth-sub').textContent = isReg ? 'Создайте аккаунт' : 'Войдите, чтобы продолжить';
-    document.getElementById('auth-submit').textContent = isReg ? 'Зарегистрироваться' : 'Войти';
-    document.getElementById('auth-toggle').textContent = isReg ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться';
+    document.getElementById('auth-sub').textContent = isReg ? 'Создайте аккаунт для учёта' : 'Войдите, чтобы продолжить';
+    
+    const submitBtnSpan = document.querySelector('#auth-submit span');
+    if (submitBtnSpan) submitBtnSpan.textContent = isReg ? 'Зарегистрироваться' : 'Войти';
     
     document.getElementById('auth-pass2').style.display = isReg ? 'block' : 'none';
     document.getElementById('auth-login').style.display = isReg ? 'block' : 'none';
     document.getElementById('forgot-pass-btn').style.display = isReg ? 'none' : 'inline-block';
     
-    document.getElementById('auth-error').textContent = '';
+    // Убираем старую кнопку переключения, так как теперь две кнопки на главной
+    document.getElementById('auth-toggle').style.display = 'none';
   }
-  function toggleAuthMode() { setAuthMode(!isRegisterMode); }
 
+  // Обработка кнопки авторизации
   async function handleAuth() {
     const login = document.getElementById('auth-login').value.trim();
     const email = document.getElementById('auth-email').value.trim();
     const pass = document.getElementById('auth-pass').value;
     const pass2 = document.getElementById('auth-pass2').value;
     const err = document.getElementById('auth-error');
+    const btn = document.getElementById('auth-submit');
+    
     err.textContent = '';
 
     if (!email || !email.includes('@')) return err.textContent = 'Введите корректный Email';
-    if (pass.length < 6) return err.textContent = 'Пароль должен быть не менее 6 символов';
+    if (pass.length < 8) return err.textContent = 'Пароль должен быть не менее 8 символов'; // Изменено на 8
 
-    if (isRegisterMode) {
-      if (login.length < 3) return err.textContent = 'Логин должен быть не менее 3 символов';
-      if (pass !== pass2) return err.textContent = 'Пароли не совпадают';
-      err.textContent = 'Загрузка...';
-      
-      const { data, error } = await supabaseClient.auth.signUp({ 
-        email: email, 
-        password: pass,
-        options: { 
-          data: { login: login },
-          emailRedirectTo: window.location.origin + window.location.pathname
+    // Включаем загрузку
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      if (isRegisterMode) {
+        if (login.length < 3) throw new Error('Логин должен быть не менее 3 символов');
+        if (pass !== pass2) throw new Error('Пароли не совпадают');
+        
+        const { data, error } = await supabaseClient.auth.signUp({ 
+          email: email, 
+          password: pass,
+          options: { 
+            data: { login: login },
+            emailRedirectTo: window.location.origin + window.location.pathname
+          }
+        });
+        
+        if (error) throw error;
+        
+        if (data.user && !data.session) {
+          err.style.color = '#4ade80';
+          err.textContent = 'Аккаунт создан! Проверьте почту.';
+          setTimeout(() => { err.style.color = 'var(--danger)'; setAuthMode(false); }, 4000);
+        } else {
+          await loginUser({ user: data.user });
         }
-      });
-      
-      if (error) return err.textContent = error.message;
-      
-      if (data.user && !data.session) {
-        err.style.color = '#4ade80';
-        err.textContent = 'Аккаунт создан! Проверьте почту.';
-        setTimeout(() => { err.style.color = 'var(--danger)'; setAuthMode(false); }, 4000);
       } else {
-        await loginUser({ user: data.user });
+        const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
+        if (error) throw error;
       }
-    } else {
-      err.textContent = 'Загрузка...';
-      const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
-      if (error) return err.textContent = 'Неверный email или пароль';
+    } catch (error) {
+      err.textContent = error.message === 'Invalid login credentials' ? 'Неверный email или пароль' : error.message;
+    } finally {
+      // Выключаем загрузку
+      btn.classList.remove('loading');
+      btn.disabled = false;
     }
   }
 
-  async function resetPassword() {
-    const email = prompt('Введите email, указанный при регистрации:');
-    if (!email) return;
-    
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname + '?reset=true'
-    });
-    
-    if (error) showToast('Ошибка: ' + error.message, 'error');
-    else showToast('Письмо для сброса пароля отправлено на ' + email, 'success');
+  // ====================================================================
+  // 4. СБРОС ПАРОЛЯ (OTP)
+  // ====================================================================
+  function openResetModal() {
+    document.getElementById('reset-step-1').style.display = 'block';
+    document.getElementById('reset-step-2').style.display = 'none';
+    document.getElementById('reset-email').value = '';
+    document.getElementById('reset-code').value = '';
+    document.getElementById('reset-new-pass').value = '';
+    openModal('reset-modal');
   }
 
+  async function requestPasswordReset() {
+    const email = document.getElementById('reset-email').value.trim();
+    const btn = document.getElementById('reset-send-btn');
+    
+    if (!email || !email.includes('@')) return showToast('Введите корректный Email', 'error');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      
+      resetEmail = email;
+      showToast('Код отправлен на почту', 'success');
+      
+      document.getElementById('reset-step-1').style.display = 'none';
+      document.getElementById('reset-step-2').style.display = 'block';
+    } catch (error) {
+      showToast('Ошибка: ' + error.message, 'error');
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  async function verifyAndResetPassword() {
+    const code = document.getElementById('reset-code').value.trim();
+    const newPass = document.getElementById('reset-new-pass').value;
+    const btn = document.getElementById('reset-submit-btn');
+
+    if (code.length !== 6) return showToast('Код должен состоять из 6 цифр', 'error');
+    if (newPass.length < 8) return showToast('Пароль должен быть не менее 8 символов', 'error');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      // 1. Проверяем OTP код
+      const { error: verifyError } = await supabaseClient.auth.verifyOtp({
+        email: resetEmail,
+        token: code,
+        type: 'recovery'
+      });
+
+      if (verifyError) throw new Error('Неверный или просроченный код');
+
+      // 2. Меняем пароль
+      const { error: updateError } = await supabaseClient.auth.updateUser({ 
+        password: newPass 
+      });
+
+      if (updateError) throw updateError;
+
+      showToast('Пароль успешно изменён!', 'success');
+      closeModal('reset-modal');
+      
+      // Выходим, чтобы пользователь зашел с новым паролем
+      await supabaseClient.auth.signOut();
+      setAuthMode(false);
+      
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  // ====================================================================
+  // 5. ВХОД В ПРИЛОЖЕНИЕ И ЛОГИКА СЕССИИ
+  // ====================================================================
   async function loginUser(session) {
     currentUser = session.user;
     
@@ -671,21 +816,21 @@
       showWelcomeScreen();
     }
     if (event === 'PASSWORD_RECOVERY') {
-      const newPass = prompt('Придумайте новый пароль (минимум 6 символов):');
-      if (newPass && newPass.length >= 6) {
-        const { error } = await supabaseClient.auth.updateUser({ password: newPass });
-        if (error) showToast('Ошибка: ' + error.message, 'error');
-        else {
-          showToast('Пароль успешно обновлён! Теперь вы можете войти.', 'success');
-          await supabaseClient.auth.signOut();
-          showAuthScreen();
-        }
-      }
+      // Это событие срабатывает при клике по ссылке из письма, 
+      // но мы используем OTP, поэтому игнорируем или обрабатываем иначе.
+      // Если пользователь перешел по ссылке (не по коду), можно предложить ввести пароль.
+      // Но по заданию мы делаем через код, так что эта ветка не критична.
     }
   });
 
+  // Прячем экран приветствия, если есть сессия
+  if (Object.keys(localStorage).some(k => k.includes('auth-token'))) {
+    document.getElementById('welcome-screen').style.display = 'none';
+    document.body.insertAdjacentHTML('beforeend', '<div id="loading-screen" style="position:fixed;inset:0;background:#121212;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#ffcc00;font-size:24px;font-weight:800;"><div class="spinner" style="display:block; border-top-color:#ffcc00; width:40px; height:40px; margin-bottom:20px;"></div>Загрузка...</div>');
+  }
+
   // ====================================================================
-  // 4. НАВИГАЦИЯ И ИНТЕРФЕЙС
+  // 6. НАВИГАЦИЯ И ОТРИСОВКА (БЕЗ ИЗМЕНЕНИЙ)
   // ====================================================================
   function switchTab(tabId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -693,7 +838,6 @@
     document.getElementById('screen-' + tabId).classList.add('active');
     document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
     
-    // Скрываем кнопку добавления расхода на экране отчета
     document.getElementById('fab-add-btn').style.display = (tabId === 'home') ? 'flex' : 'none';
     
     localStorage.setItem('activeTab', tabId);
@@ -702,9 +846,6 @@
     if (tabId === 'profile') { renderProfile(); }
   }
 
-  // ====================================================================
-  // 5. РЕНДЕР ДАННЫХ
-  // ====================================================================
   function renderAll() {
     if (!currentUser) return;
     renderHome(); renderCars();
@@ -757,7 +898,6 @@
       else { trendEl.className = 'total-trend trend-neutral'; trendEl.innerHTML = `0%`; }
     }
 
-    // Показываем только 3 последних расхода
     const recent = [...targetExpenses]
       .sort((a,b) => new Date(b.date) - new Date(a.date) || new Date(b.created_at || 0) - new Date(a.created_at || 0))
       .slice(0, 3);
@@ -839,7 +979,6 @@
     document.getElementById('profile-date').textContent = 'С нами с ' + fmtDate(created);
   }
 
-  // Копирование email поддержки
   document.getElementById('support-email').addEventListener('click', function() {
     const email = 'support.garage.car@gmail.com';
     navigator.clipboard.writeText(email).then(() => {
@@ -856,7 +995,7 @@
   });
 
   // ====================================================================
-  // 6. МОДАЛКИ
+  // 7. МОДАЛКИ
   // ====================================================================
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1016,7 +1155,7 @@
   }
 
   // ====================================================================
-  // 7. ФОРМЫ
+  // 8. ФОРМЫ ДАННЫХ
   // ====================================================================
   document.getElementById('expense-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1093,7 +1232,7 @@
   });
 
   // ====================================================================
-  // 8. АВТОДОПОЛНЕНИЕ
+  // 9. АВТОДОПОЛНЕНИЕ
   // ====================================================================
   function setupAutocomplete(inputEl, listEl, getSuggestions, onSelect) {
     let activeIdx = -1;
@@ -1138,7 +1277,7 @@
   );
 
   // ====================================================================
-  // 9. ОТЧЕТ, ПЕЧАТЬ И PDF
+  // 10. ОТЧЕТ, ПЕЧАТЬ И PDF
   // ====================================================================
   function updateReportSelect() {
     const sel = document.getElementById('report-car-select');
