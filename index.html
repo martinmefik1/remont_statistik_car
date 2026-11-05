@@ -21,16 +21,12 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
-  /* Фикс горизонтального скролла на мобильных */
   html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
-  
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
 
-  /* Скрываем экраны до инициализации */
   .auth-screen, .app-container { visibility: hidden; }
   .auth-screen.active, .app-container.active { visibility: visible; }
 
-  /* Кастомный скроллбар */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 5px; border: 2px solid var(--bg); }
@@ -39,7 +35,6 @@
   ::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffcc00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>'); background-size: 10px; background-position: center; background-repeat: no-repeat; }
   ::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffcc00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'); background-size: 10px; background-position: center; background-repeat: no-repeat; }
 
-  /* Всплывающие уведомления (Toasts) */
   .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; background: transparent; }
   .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: slideDown 0.3s ease forwards; pointer-events: auto; }
   .toast-success { background: var(--success); }
@@ -48,12 +43,10 @@
   @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-  /* Стили экранов авторизации */
   .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; overflow-x: hidden; }
   .auth-screen.active { display: flex; animation: fadeIn 0.4s ease; }
   .auth-card { background: var(--surface); padding: 40px 30px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
   
-  /* Увеличенный логотип и уменьшенный отступ */
   .auth-logo { width: 220px; height: 220px; margin-bottom: 5px; object-fit: contain; }
   .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; margin-top: 0; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
@@ -79,7 +72,6 @@
   .loading .spinner { display: block; }
   .loading span { display: none; }
 
-  /* Основное приложение */
   .app-container { width: 100%; max-width: 480px; height: 100vh; height: 100dvh; display: none; flex-direction: column; background: var(--bg); position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: max-width 0.3s ease; }
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
   
@@ -97,7 +89,6 @@
 
   .header { padding: 20px 20px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
   .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  /* Увеличенный логотип в 2 раза */
   .logo-img { width: 130px; height: 130px; object-fit: contain; }
 
   .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 20px 180px; position: relative; }
@@ -140,7 +131,6 @@
   .nav-item svg { width: 24px; height: 24px; }
   .nav-item.active { color: var(--yellow); }
 
-  /* Модалки */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 10000; display: none; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
   .modal-sheet { background: var(--surface); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
@@ -153,7 +143,6 @@
   .input-group { margin-bottom: 16px; position: relative; width: 100%; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
   
-  /* Фикс календарика и времени под темную тему */
   .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; color-scheme: dark; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
   
@@ -226,7 +215,6 @@
 
 <div id="toast-container" class="toast-container"></div>
 
-<!-- КАСТОМНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
 <div class="modal-overlay" id="custom-confirm-modal">
   <div class="modal-sheet">
     <div class="custom-icon">
@@ -240,7 +228,6 @@
   </div>
 </div>
 
-<!-- КАСТОМНОЕ ОКНО ВВОДА -->
 <div class="modal-overlay" id="custom-prompt-modal">
   <div class="modal-sheet">
     <div class="custom-icon">
@@ -255,7 +242,6 @@
   </div>
 </div>
 
-<!-- ЭКРАН 1: ПРИВЕТСТВИЕ -->
 <div id="welcome-screen" class="auth-screen">
   <div class="auth-card">
     <img src="70E3607B-8860-425B-B393-F1C76F1D0F68.png" alt="Логотип" class="auth-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ffcc00\' stroke-width=\'2\'><path d=\'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\'></path></svg>'">
@@ -272,7 +258,6 @@
   </div>
 </div>
 
-<!-- ЭКРАН 2: АВТОРИЗАЦИЯ -->
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
     <img src="70E3607B-8860-425B-B393-F1C76F1D0F68.png" alt="Логотип" class="auth-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ffcc00\' stroke-width=\'2\'><path d=\'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\'></path></svg>'">
@@ -302,7 +287,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА СБРОСА ПАРОЛЯ -->
 <div class="modal-overlay" id="reset-modal">
   <div class="modal-sheet">
     <div class="modal-header"><div class="modal-title">Сброс пароля</div><button class="close-btn" onclick="closeModal('reset-modal')">✕</button></div>
@@ -334,7 +318,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА БЫСТРОГО ПРОСМОТРА ОТЧЕТА -->
 <div class="modal-overlay" id="preview-modal">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -345,7 +328,6 @@
   </div>
 </div>
 
-<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
 <div class="app-container" id="app-container">
   <header class="header">
     <div class="logo-area" onclick="switchTab('home')">
@@ -443,7 +425,6 @@
   </nav>
 </div>
 
-<!-- МОДАЛКА: ВСЕ РАСХОДЫ -->
 <div class="modal-overlay" id="all-expenses-modal">
   <div class="modal-sheet" style="max-height: 85vh;">
     <div class="modal-header"><div class="modal-title">Все расходы</div><button class="close-btn" onclick="closeModal('all-expenses-modal')">✕</button></div>
@@ -452,7 +433,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА РАСХОДА -->
 <div class="modal-overlay" id="expense-modal">
   <div class="modal-sheet">
     <div class="modal-header"><div class="modal-title" id="exp-modal-title">Новый расход</div><button class="close-btn" onclick="closeModal('expense-modal')">✕</button></div>
@@ -479,7 +459,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА АВТО -->
 <div class="modal-overlay" id="car-modal">
   <div class="modal-sheet">
     <div class="modal-header"><div class="modal-title" id="car-modal-title">Новый автомобиль</div><button class="close-btn" onclick="closeModal('car-modal')">✕</button></div>
@@ -498,18 +477,12 @@
 </div>
 
 <script>
-  // ====================================================================
-  // 1. ИНИЦИАЛИЗАЦИЯ SUPABASE
-  // ====================================================================
   const SUPABASE_URL = 'https://nmbdiqqeaedjsfodzyyj.supabase.co'; 
   const SUPABASE_ANON_KEY = 'sb_publishable_hTLQG8-5ZajtZj_UDo3fBg_du_DFuMD';
   
   const { createClient } = supabase;
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ====================================================================
-  // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И УТИЛИТЫ
-  // ====================================================================
   let currentUser = null;
   let userCars = [];
   let userExpenses = [];
@@ -582,9 +555,6 @@
   const fmtDate = iso => { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
   const getBrandLogo = (brand) => { if (!brand) return ''; const slug = brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return `https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@v1.0.0/${slug}-logo.svg`; };
 
-  // ====================================================================
-  // 3. КАСТОМНЫЕ ОКНА (ВМЕСТО ALERT/CONFIRM)
-  // ====================================================================
   function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -603,50 +573,19 @@
     const btn = document.getElementById('confirm-yes-btn');
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.onclick = () => {
-      closeCustomConfirm();
-      onConfirm();
-    };
+    newBtn.onclick = () => { closeCustomConfirm(); onConfirm(); };
   }
 
-  function closeCustomConfirm() {
-    document.getElementById('custom-confirm-modal').classList.remove('open');
-  }
-
-  function showPrompt(message, defaultValue, onConfirm) {
-    document.getElementById('prompt-msg').textContent = message;
-    const input = document.getElementById('prompt-input');
-    input.value = defaultValue || '';
-    document.getElementById('custom-prompt-modal').classList.add('open');
-    input.focus();
-    const btn = document.getElementById('prompt-yes-btn');
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.onclick = () => {
-      const val = input.value;
-      closeCustomPrompt();
-      onConfirm(val);
-    };
-  }
-
-  function closeCustomPrompt() {
-    document.getElementById('custom-prompt-modal').classList.remove('open');
-  }
+  function closeCustomConfirm() { document.getElementById('custom-confirm-modal').classList.remove('open'); }
 
   function showAuthError(message) {
     const errorBox = document.getElementById('auth-error');
-    const errorText = document.getElementById('auth-error-text');
-    errorText.textContent = message;
+    document.getElementById('auth-error-text').textContent = message;
     errorBox.classList.add('active');
   }
 
-  function hideAuthError() {
-    document.getElementById('auth-error').classList.remove('active');
-  }
+  function hideAuthError() { document.getElementById('auth-error').classList.remove('active'); }
 
-  // ====================================================================
-  // 4. ЭКРАНЫ И АВТОРИЗАЦИЯ
-  // ====================================================================
   function showWelcomeScreen() {
     document.getElementById('welcome-screen').classList.add('active');
     document.getElementById('auth-screen').classList.remove('active');
@@ -726,21 +665,18 @@
           await loginUser({ user: data.user });
         }
       } else {
-        // Если введен логин без @, ищем почту в profiles
+        // Используем RPC для безопасного получения email по логину
         if (!loginInput.includes('@')) {
-           const { data: profile, error: profileErr } = await supabaseClient.from('profiles').select('email').eq('login', loginInput).single();
-           if (profile && profile.email) {
-              loginInput = profile.email;
-           } else {
+           const { data: emailData, error: emailErr } = await supabaseClient.rpc('get_email_by_login', { user_login: loginInput });
+           if (emailErr || !emailData) {
               throw new Error('Пользователь с таким логином не найден');
            }
+           loginInput = emailData;
         }
         
         const { error } = await supabaseClient.auth.signInWithPassword({ email: loginInput, password: pass });
         if (error) {
-          if (error.message.includes('Email not confirmed')) {
-            throw new Error('Email не подтвержден. Пожалуйста, проверьте почту.');
-          }
+          if (error.message.includes('Email not confirmed')) throw new Error('Email не подтвержден. Пожалуйста, проверьте почту.');
           throw error;
         }
       }
@@ -755,9 +691,6 @@
     }
   }
 
-  // ====================================================================
-  // 5. СБРОС ПАРОЛЯ
-  // ====================================================================
   function openResetModal() {
     document.querySelectorAll('.reset-step').forEach(el => el.classList.remove('active'));
     document.getElementById('reset-step-1').classList.add('active');
@@ -907,20 +840,19 @@
     }
   }
 
-  // ====================================================================
-  // 6. ВХОД В ПРИЛОЖЕНИЕ
-  // ====================================================================
   async function loginUser(session) {
     currentUser = session.user;
     
+    // Оборачиваем в try/catch, чтобы при ошибке загрузки данных приложение не зависало
     try {
-      const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
-      const { data: expenses } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
-      const { data: reminders } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
+      const { data: cars, error: carsErr } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
+      const { data: expenses, error: expErr } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
+      const { data: reminders, error: remErr } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
       
       userCars = cars || [];
       userExpenses = expenses || [];
       userReminders = reminders || [];
+      
       if (userCars.length > 0) {
         const savedCarId = localStorage.getItem('currentCarId');
         currentCarId = userCars.find(c => c.id === savedCarId) ? savedCarId : userCars[0].id;
@@ -928,8 +860,7 @@
         currentCarId = null;
       }
     } catch (e) {
-      console.warn('Data fetch failed, retrying...', e);
-      // Если сеть упала, просто инициализируем пустые массивы, чтобы приложение не крашилось
+      console.warn('Data fetch failed:', e);
       userCars = []; userExpenses = []; userReminders = [];
     }
 
@@ -961,8 +892,9 @@
 
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (event === 'INITIAL_SESSION') {
-      if (session) await loginUser(session);
-      else {
+      if (session) {
+        await loginUser(session);
+      } else {
         const loader = document.getElementById('loading-screen');
         if (loader) loader.remove();
         showWelcomeScreen();
@@ -977,9 +909,6 @@
     document.body.insertAdjacentHTML('beforeend', '<div id="loading-screen" style="position:fixed;inset:0;background:#121212;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#ffcc00;font-size:24px;font-weight:800;"><div class="spinner" style="display:block; border-top-color:#ffcc00; width:40px; height:40px; margin-bottom:20px;"></div>Загрузка...</div>');
   }
 
-  // ====================================================================
-  // 7. НАВИГАЦИЯ И ОТРИСОВКА
-  // ====================================================================
   function switchTab(tabId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1131,9 +1060,6 @@
     }).catch(err => showToast('Не удалось скопировать: ' + err, 'error'));
   });
 
-  // ====================================================================
-  // 8. МОДАЛКИ
-  // ====================================================================
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -1211,9 +1137,6 @@
     openModal('car-modal');
   }
 
-  // ====================================================================
-  // 9. СОХРАНЕНИЕ ДАННЫХ
-  // ====================================================================
   async function saveExpense() {
     const id = document.getElementById('exp-id').value;
     const data = {
@@ -1243,9 +1166,6 @@
     closeModal('car-modal'); renderAll();
   }
 
-  // ====================================================================
-  // 10. АВТОДОПОЛНЕНИЕ
-  // ====================================================================
   function setupAutocomplete(inputEl, listEl, getSuggestions, onSelect) {
     let activeIdx = -1;
     const close = () => { listEl.style.display = 'none'; activeIdx = -1; };
@@ -1264,9 +1184,6 @@
     if (gens.length > 0) { genSelect.innerHTML = `<option value="">Выберите поколение</option>` + gens.map(g => `<option value="${g}">${g}</option>`).join(''); genGroup.style.display = 'block'; } else { genGroup.style.display = 'none'; }
   });
 
-  // ====================================================================
-  // 11. НАПОМИНАНИЯ
-  // ====================================================================
   async function addReminder() {
     const title = document.getElementById('rem-title').value.trim();
     const date = document.getElementById('rem-date').value;
@@ -1304,9 +1221,6 @@
     Notification.requestPermission();
   }
 
-  // ====================================================================
-  // 12. ОТЧЕТ, ПЕЧАТЬ
-  // ====================================================================
   function updateReportSelect() {
     const sel = document.getElementById('report-car-select');
     sel.innerHTML = userCars.map(c => `<option value="${c.id}">${c.brand} ${c.model} (${c.plate})</option>`).join('');
