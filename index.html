@@ -2,9 +2,15 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Учёт автомобиля</title>
 <link rel="icon" type="image/png" href="70E3607B-8860-425B-B393-F1C76F1D0F68.png">
+<!-- Настройки для корректного добавления на экран iPhone (PWA) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Гараж">
+<link rel="apple-touch-icon" href="70E3607B-8860-425B-B393-F1C76F1D0F68.png">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -279,8 +285,7 @@
     </div>
     
     <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
-      <!-- Убран логин, только Email для регистрации, но для входа можно ввести логин -->
-      <input type="text" id="auth-email" class="auth-input" placeholder="Email или Логин (при входе)" required>
+      <input type="text" id="auth-email" class="auth-input" placeholder="Email или Логин" required>
       <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль (минимум 8 символов)" required>
       <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
       
@@ -672,7 +677,7 @@
   }
 
   async function handleAuth() {
-    const loginInput = document.getElementById('auth-email').value.trim();
+    let loginInput = document.getElementById('auth-email').value.trim();
     const pass = document.getElementById('auth-pass').value;
     const pass2 = document.getElementById('auth-pass2').value;
     const btn = document.getElementById('auth-submit');
@@ -684,18 +689,6 @@
 
     if (isRegisterMode) {
       if (!loginInput.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginInput)) return showAuthError('Введите корректный Email');
-    } else {
-      // Если введен логин без @, ищем почту в profiles
-      if (!loginInput.includes('@')) {
-         btn.classList.add('loading'); btn.disabled = true;
-         const { data: profile } = await supabaseClient.from('profiles').select('email').eq('login', loginInput).single();
-         if (profile && profile.email) {
-            loginInput = profile.email;
-         } else {
-            btn.classList.remove('loading'); btn.disabled = false;
-            return showAuthError('Пользователь с таким логином не найден');
-         }
-      }
     }
 
     btn.classList.add('loading');
@@ -733,6 +726,16 @@
           await loginUser({ user: data.user });
         }
       } else {
+        // Если введен логин без @, ищем почту в profiles
+        if (!loginInput.includes('@')) {
+           const { data: profile, error: profileErr } = await supabaseClient.from('profiles').select('email').eq('login', loginInput).single();
+           if (profile && profile.email) {
+              loginInput = profile.email;
+           } else {
+              throw new Error('Пользователь с таким логином не найден');
+           }
+        }
+        
         const { error } = await supabaseClient.auth.signInWithPassword({ email: loginInput, password: pass });
         if (error) {
           if (error.message.includes('Email not confirmed')) {
@@ -742,7 +745,10 @@
         }
       }
     } catch (error) {
-      showAuthError(error.message === 'Invalid login credentials' ? 'Неверный email или пароль' : error.message);
+      let msg = error.message;
+      if (msg === 'Invalid login credentials') msg = 'Неверный email/логин или пароль';
+      if (msg.includes('Load failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = 'Ошибка сети. Проверьте подключение к интернету.';
+      showAuthError(msg);
     } finally {
       btn.classList.remove('loading');
       btn.disabled = false;
@@ -796,7 +802,9 @@
       showToast('Код отправлен на почту', 'success');
       startResendTimer();
     } catch (error) {
-      showToast('Ошибка: ' + error.message, 'error');
+      let msg = error.message;
+      if (msg.includes('Load failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = 'Ошибка сети. Проверьте подключение к интернету.';
+      showToast('Ошибка: ' + msg, 'error');
     } finally {
       isSendingReset = false;
       if (sendBtn) { sendBtn.classList.remove('loading'); sendBtn.disabled = false; }
@@ -860,8 +868,10 @@
           document.getElementById('reset-new-pass').focus();
         }, 800);
       } catch (error) {
+        let msg = error.message;
+        if (msg.includes('Load failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = 'Ошибка сети. Проверьте подключение к интернету.';
         otpInputs.forEach(inp => inp.classList.add('error'));
-        showToast(error.message, 'error');
+        showToast(msg, 'error');
         setTimeout(() => {
           otpInputs.forEach(inp => { inp.classList.remove('error'); inp.value = ''; inp.disabled = false; });
           otpInputs[0].focus();
@@ -888,7 +898,9 @@
       await supabaseClient.auth.signOut();
       setAuthMode(false);
     } catch (error) {
-      showToast(error.message, 'error');
+      let msg = error.message;
+      if (msg.includes('Load failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = 'Ошибка сети. Проверьте подключение к интернету.';
+      showToast(msg, 'error');
     } finally {
       btn.classList.remove('loading');
       btn.disabled = false;
@@ -900,17 +912,25 @@
   // ====================================================================
   async function loginUser(session) {
     currentUser = session.user;
-    const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
-    const { data: expenses } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
-    const { data: reminders } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
-    userCars = cars || [];
-    userExpenses = expenses || [];
-    userReminders = reminders || [];
-    if (userCars.length > 0) {
-      const savedCarId = localStorage.getItem('currentCarId');
-      currentCarId = userCars.find(c => c.id === savedCarId) ? savedCarId : userCars[0].id;
-    } else {
-      currentCarId = null;
+    
+    try {
+      const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
+      const { data: expenses } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
+      const { data: reminders } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
+      
+      userCars = cars || [];
+      userExpenses = expenses || [];
+      userReminders = reminders || [];
+      if (userCars.length > 0) {
+        const savedCarId = localStorage.getItem('currentCarId');
+        currentCarId = userCars.find(c => c.id === savedCarId) ? savedCarId : userCars[0].id;
+      } else {
+        currentCarId = null;
+      }
+    } catch (e) {
+      console.warn('Data fetch failed, retrying...', e);
+      // Если сеть упала, просто инициализируем пустые массивы, чтобы приложение не крашилось
+      userCars = []; userExpenses = []; userReminders = [];
     }
 
     document.getElementById('welcome-screen').classList.remove('active');
