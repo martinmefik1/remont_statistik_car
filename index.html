@@ -90,20 +90,18 @@
   .loading .spinner { display: block; }
   .loading span { display: none; }
 
-  /* ПК Версия */
-  .app-container { width: 100%; max-width: 100vw; height: 100vh; height: 100dvh; display: none; flex-direction: column; background: var(--bg); position: relative; transition: max-width 0.3s ease, background 0.3s; }
+  /* ПК Версия и Полноэкранный режим */
+  .app-container { width: 100%; max-width: 100vw; height: 100vh; height: 100dvh; display: none; flex-direction: column; background: var(--bg); position: relative; transition: background 0.3s; }
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
   
   @media (min-width: 900px) {
-    body { display: block; }
-    .app-container { max-width: 100%; width: 100%; box-shadow: none; margin: 0; }
-    .main-content { max-width: 1200px; margin: 0 auto; padding: 20px 40px 100px; display: flex; flex-direction: column; gap: 30px; width: 100%; }
+    .main-content { max-width: 1400px; margin: 0 auto; padding: 20px 40px 100px; display: flex; flex-direction: column; gap: 30px; width: 100%; }
     .screen { display: none; width: 100%; }
     .screen.active { display: block; }
     .screen#screen-home { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; width: 100%; align-items: start; }
     .home-left { position: sticky; top: 20px; }
-    .header { max-width: 1200px; margin: 0 auto; padding: 20px 40px 10px; width: 100%; }
-    .fab-add { max-width: 400px; bottom: 90px; left: calc(50% + 200px); }
+    .header { max-width: 1400px; margin: 0 auto; padding: 20px 40px 10px; width: 100%; }
+    .fab-add { max-width: 400px; bottom: 40px; left: calc(50% + 200px); }
     .car-list, .report-controls { width: 100%; }
   }
 
@@ -363,7 +361,7 @@
     <div id="reset-step-3" class="reset-step">
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; text-align: center;" data-i18n="reset_desc_3">Код верный! Придумайте новый пароль.</p>
       <form onsubmit="event.preventDefault(); saveNewPassword();">
-        <div class="input-group"><label data-i18n="reset_new_pass">Новый пароль (только английские буквы и цифры, мин. 8)</label><input type="password" id="reset-new-pass" placeholder="Минимум 8 символов" required></form></div>
+        <div class="input-group"><label data-i18n="reset_new_pass">Новый пароль (только английские буквы и цифры, мин. 8)</label><input type="password" id="reset-new-pass" placeholder="Минимум 8 символов" required></div>
         <div class="input-group"><label data-i18n="reset_confirm_pass">Повторите пароль</label><input type="password" id="reset-new-pass2" placeholder="Повторите пароль" required></div>
         <button type="submit" class="btn-submit" id="reset-submit-btn"><div class="spinner"></div><span data-i18n="btn_save_pass">Сохранить пароль</span></button>
       </form>
@@ -704,6 +702,7 @@
         msg_copy_err: 'Не удалось скопировать: ',
         msg_fill_rem: 'Заполните название, дату и время',
         msg_plate_err: 'Неверный формат госномера. Пример: А123ВС77',
+        btn_add_exp: 'Добавить расход',
         cal_mon: 'Пн', cal_tue: 'Вт', cal_wed: 'Ср', cal_thu: 'Чт', cal_fri: 'Пт', cal_sat: 'Сб', cal_sun: 'Вс',
         report_doc_title: 'Отчёт по расходам',
         report_doc_date: 'Дата формирования:',
@@ -862,6 +861,7 @@
         msg_copy_err: 'Failed to copy: ',
         msg_fill_rem: 'Fill in title, date and time',
         msg_plate_err: 'Invalid license plate format. Example: A123BC77',
+        btn_add_exp: 'Add expense',
         cal_mon: 'Mo', cal_tue: 'Tu', cal_wed: 'We', cal_thu: 'Th', cal_fri: 'Fr', cal_sat: 'Sa', cal_sun: 'Su',
         report_doc_title: 'Expense Report',
         report_doc_date: 'Date generated:',
@@ -905,7 +905,6 @@
           }
       });
       
-      // Обновляем только если активен экран профиля, чтобы не сбить дату
       if (document.getElementById('screen-profile').classList.contains('active')) {
           renderProfile();
       }
