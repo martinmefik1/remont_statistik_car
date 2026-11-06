@@ -87,11 +87,13 @@
     .car-list, .report-controls { grid-column: 1 / -1; }
   }
 
-  .header { padding: 20px 20px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  /* Фиксация шапки */
+  .header { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
   .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
   .logo-img { width: 130px; height: 130px; object-fit: contain; }
 
-  .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 20px 180px; position: relative; }
+  /* Прокрутка контента */
+  .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 20px 180px; position: relative; -webkit-overflow-scrolling: touch; }
   .screen { display: none; animation: fadeIn 0.3s ease; }
   .screen.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -111,6 +113,7 @@
   .section-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 15px; }
   .section-title { font-size: 18px; font-weight: 600; }
   .section-link { color: var(--yellow); font-size: 14px; text-decoration: none; font-weight: 500; cursor: pointer; }
+  
   .expense-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
   .expense-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; width: 100%; max-width: 100%; overflow: hidden; }
   .expense-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--surface-hover); flex-shrink: 0; }
@@ -120,12 +123,15 @@
   .expense-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   .expense-amount { font-size: 16px; font-weight: 700; text-align: right; flex-shrink: 0; }
   .expense-actions { display: flex; gap: 4px; margin-left: 8px; flex-shrink: 0; }
+  
   .action-btn { background: var(--surface-hover); border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; cursor: pointer; transition: all 0.2s; }
   .action-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
   .action-btn.delete:hover { color: var(--danger); background: rgba(255,68,68,0.1); }
+
   .fab-add { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--yellow); color: #000; border: none; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 10; box-shadow: 0 4px 20px rgba(255, 204, 0, 0.3); transition: transform 0.1s; }
   .fab-add:active { transform: translateX(-50%) scale(0.98); }
   .fab-add svg { width: 20px; height: 20px; }
+
   .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; background: #171717; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom); z-index: 20; }
   .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 10px; font-weight: 500; background: none; border: none; cursor: pointer; transition: color 0.2s; }
   .nav-item svg { width: 24px; height: 24px; }
@@ -137,13 +143,15 @@
   @media (min-width: 900px) { .modal-overlay { align-items: center; } .modal-sheet { border-radius: 24px; max-width: 500px; animation: scaleIn 0.2s ease; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .modal-title { font-size: 20px; font-weight: 700; }
   .close-btn { background: var(--surface-hover); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: grid; place-items: center; }
-  .input-group { margin-bottom: 16px; position: relative; width: 100%; }
+
+  /* Исправление выхода за границы экрана для полей ввода дат на телефоне */
+  .input-group { margin-bottom: 16px; position: relative; width: 100%; min-width: 0; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-  
-  .input-group input, .input-group select { width: 100%; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; color-scheme: dark; }
+  .input-group input, .input-group select { width: 100%; min-width: 0; background: #121212; border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; color-scheme: dark; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
   
   .btn-submit { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
@@ -161,6 +169,7 @@
   .cal-day.today { border: 1px solid var(--yellow); }
   .cal-day.selected { background: var(--yellow); color: #000; font-weight: 700; }
   .cal-day.empty { pointer-events: none; }
+
   .car-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
   .car-card { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; position: relative; border: 2px solid transparent; cursor: pointer; transition: border-color 0.2s; width: 100%; overflow: hidden; }
   .car-card.active { border-color: var(--yellow); }
@@ -169,26 +178,44 @@
   .car-info { flex: 1; min-width: 0; }
   .car-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .car-plate { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
   .report-controls { background: var(--surface); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
   .report-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   .btn-print, .btn-preview { background: var(--yellow); color: #000; border: none; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-preview { background: var(--surface-hover); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
-  .report-document { background: #fff; color: #000; padding: 30px; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; width: 800px; box-sizing: border-box; }
+
+  /* Стили отчета */
+  .report-document { background: #fff; color: #000; padding: 30px; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; width: 100%; max-width: 800px; box-sizing: border-box; page-break-after: avoid; page-break-inside: avoid; }
   .report-document h1 { font-size: 24px; margin-bottom: 5px; font-weight: 800; }
   .report-header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
   .report-logo { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; }
-  .report-document table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+  .report-document table { width: 100%; border-collapse: collapse; margin-bottom: 15px; page-break-inside: auto; }
+  .report-document tr { page-break-inside: avoid; page-break-after: auto; }
   .report-document th { text-align: left; border-bottom: 1px solid #000; padding: 8px 12px; font-size: 12px; text-transform: uppercase; color: #333; }
   .report-document td { padding: 8px 12px; border-bottom: 1px solid #eee; color: #000; }
   .report-document .num { text-align: right; }
   .report-document .r-total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; color: #000; }
 
-  #preview-modal .modal-sheet { max-width: 95vw; max-height: 95vh; background: #fff; padding: 0; border-radius: 0; }
-  #preview-modal .modal-header { background: #1e1e1e; padding: 16px 20px; margin: 0; position: sticky; top: 0; z-index: 10; }
+  /* Окно быстрого просмотра на весь экран */
+  #preview-modal .modal-sheet { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; background: #fff; padding: 0; border-radius: 0; margin: 0; display: flex; flex-direction: column; }
+  #preview-modal .modal-header { background: #1e1e1e; padding: 16px 20px; margin: 0; position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
   #preview-modal .modal-title { color: #fff; }
   #preview-modal .close-btn { color: #fff; }
-  #preview-content { padding: 20px; overflow-y: auto; max-height: calc(95vh - 60px); }
-  #preview-content .report-document { width: 100%; box-shadow: none; }
+  #preview-content { padding: 0; overflow-y: auto; flex: 1; }
+  #preview-content .report-document { width: 100%; max-width: 100%; box-shadow: none; margin: 0; border-radius: 0; padding: 20px; }
+
+  /* Печать PDF (убираем пустые страницы) */
+  @media print {
+    @page { margin: 10mm; size: auto; }
+    body, .app-container, .main-content, .screen, .report-controls, .header, .bottom-nav, .fab-add, .modal-overlay, .auth-screen { display: block !important; background: #fff !important; color: #000 !important; position: static !important; padding: 0 !important; margin: 0 !important; height: auto !important; overflow: visible !important; max-width: 100% !important; box-shadow: none !important; }
+    .header, .bottom-nav, .fab-add, .report-controls, .modal-overlay, .auth-screen, .section-header, .total-card, .expense-list { display: none !important; }
+    #screen-stats { display: block !important; }
+    .report-document { padding: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
+    .report-document * { color: #000 !important; }
+    .report-document table { page-break-inside: auto !important; }
+    .report-document tr { page-break-inside: avoid !important; }
+    .report-document .r-total { page-break-after: avoid !important; }
+  }
 
   .reset-step { display: none; }
   .reset-step.active { display: block; animation: fadeIn 0.3s ease; }
@@ -375,7 +402,7 @@
           <div class="input-group"><label>Дата</label><input type="date" id="rem-date" required></div>
           <div class="input-group"><label>Время</label><input type="time" id="rem-time" required></div>
           <div class="input-group"><label>Автомобиль (необязательно)</label><select id="rem-car"><option value="">Все автомобили</option></select></div>
-          <button type="submit" class="btn-submit">Добавить напоминание</button>
+          <button type="submit" class="btn-submit" id="rem-submit-btn">Добавить напоминание</button>
         </form>
       </div>
       <div class="glass card" style="padding: 20px;">
@@ -830,14 +857,13 @@
   async function loginUser(session) {
     currentUser = session.user;
     
-    // Failsafe to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
         const loader = document.getElementById('loading-screen');
         if (loader) loader.remove();
         document.getElementById('welcome-screen').classList.remove('active');
         document.getElementById('auth-screen').classList.remove('active');
         document.getElementById('app-container').classList.add('active');
-    }, 5000); // If it takes more than 5s, force show the app
+    }, 5000);
 
     try {
       const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
@@ -856,7 +882,6 @@
       }
     } catch (e) {
       console.warn('Data fetch error:', e);
-      // Initialize empty arrays on failure so app doesn't crash
       userCars = userCars || [];
       userExpenses = userExpenses || [];
       userReminders = userReminders || [];
@@ -1192,6 +1217,10 @@
 
     if (!title || !date || !time) return showToast('Заполните название, дату и время', 'error');
 
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+
     const { data, error } = await supabaseClient.from('reminders').insert([{ user_id: currentUser.id, car_id: carId, title, date, time }]).select();
     if (error) return showToast(error.message, 'error');
     userReminders.push(data[0]);
@@ -1215,10 +1244,6 @@
         new Notification('Напоминание', { body: title, icon: '70E3607B-8860-425B-B393-F1C76F1D0F68.png' });
       }, delay);
     }
-  }
-
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
   }
 
   function updateReportSelect() {
