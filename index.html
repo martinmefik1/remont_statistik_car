@@ -39,8 +39,8 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
-  html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; justify-content: center; overflow: hidden; transition: background 0.3s, color 0.3s; }
+  html, body { width: 100%; max-width: 100vw; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
 
   .auth-screen, .app-container { visibility: hidden; }
   .auth-screen.active, .app-container.active { visibility: visible; }
@@ -69,7 +69,7 @@
   .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; margin-top: 0; color: var(--yellow); }
   .auth-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
   
-  .auth-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
+  .auth-input { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
   .auth-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.15); background: var(--surface); }
   .auth-input::placeholder { color: var(--text-muted); opacity: 0.7; }
   .auth-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; margin-bottom: 12px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; }
@@ -90,22 +90,22 @@
   .loading .spinner { display: block; }
   .loading span { display: none; }
 
-  .app-container { width: 100%; max-width: 480px; height: 100vh; height: 100dvh; display: none; flex-direction: column; background: var(--bg); position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.1); transition: max-width 0.3s ease, background 0.3s; }
+  /* ПК Версия */
+  .app-container { width: 100%; max-width: 100vw; height: 100vh; height: 100dvh; display: none; flex-direction: column; background: var(--bg); position: relative; transition: max-width 0.3s ease, background 0.3s; }
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
   
   @media (min-width: 900px) {
-    .app-container { max-width: 1100px; box-shadow: none; }
-    .main-content { padding: 20px 40px 180px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-content: start; }
+    .app-container { max-width: 1200px; margin: 0 auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .main-content { padding: 20px 40px 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-content: start; overflow-y: auto; flex: 1; }
     .screen { grid-column: 1 / -1; }
     .screen#screen-home { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
     .home-left { position: sticky; top: 20px; }
-    .fab-add { max-width: 400px; }
-    .bottom-nav { max-width: 1100px; margin: 0 auto; border-radius: 24px 24px 0 0; border: 1px solid var(--border); border-bottom: none; }
-    .header { padding: 20px 40px 10px; }
+    .fab-add { max-width: 400px; bottom: 90px; }
     .car-list, .report-controls { grid-column: 1 / -1; }
   }
 
-  .header { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; transition: background 0.3s; }
+  /* Фиксация шапки */
+  .header { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; transition: background 0.3s; }
   .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
   .logo-img { width: 130px; height: 130px; object-fit: contain; }
 
@@ -155,7 +155,7 @@
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 10000; display: none; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
-  .modal-sheet { background: var(--surface); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; transition: background 0.3s; }
+  .modal-sheet { background: var(--surface); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; transition: background 0.3s; cursor: default; }
   @media (min-width: 900px) { .modal-overlay { align-items: center; } .modal-sheet { border-radius: 24px; max-width: 500px; animation: scaleIn 0.2s ease; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -165,9 +165,10 @@
   .close-btn { background: var(--surface-hover); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: grid; place-items: center; }
   .close-btn:hover { background: var(--border); }
 
+  /* Поля ввода и защита от вылезания */
   .input-group { margin-bottom: 16px; position: relative; width: 100%; min-width: 0; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-  .input-group input, .input-group select { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s, background 0.3s; color-scheme: dark; }
+  .input-group input, .input-group select { width: 100%; min-width: 0; max-width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s, background 0.3s; color-scheme: dark; }
   [data-theme="light"] .input-group input, [data-theme="light"] .input-group select { color-scheme: light; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
   
@@ -250,6 +251,14 @@
   .custom-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-cancel { background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
   .btn-confirm { background: var(--yellow); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+  /* Стили для переключателей темы и языка */
+  .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .settings-label { font-size: 15px; font-weight: 500; }
+  .segmented-control { display: inline-flex; background: var(--surface-hover); padding: 4px; border-radius: 12px; gap: 2px; }
+  .segmented-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 12px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+  .segmented-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
@@ -257,7 +266,7 @@
 <div id="toast-container" class="toast-container"></div>
 
 <div class="modal-overlay" id="custom-confirm-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="custom-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
     </div>
@@ -265,20 +274,6 @@
     <div class="custom-btns">
       <button class="btn-cancel" onclick="closeCustomConfirm()" data-i18n="btn_cancel">Отмена</button>
       <button class="btn-confirm" id="confirm-yes-btn" data-i18n="btn_yes">Да</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="custom-prompt-modal">
-  <div class="modal-sheet">
-    <div class="custom-icon">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-    </div>
-    <div class="custom-msg" id="prompt-msg" data-i18n="prompt_default">Введите данные:</div>
-    <input type="text" id="prompt-input" class="custom-input">
-    <div class="custom-btns">
-      <button class="btn-cancel" onclick="closeCustomPrompt()" data-i18n="btn_cancel">Отмена</button>
-      <button class="btn-confirm" id="prompt-yes-btn" data-i18n="btn_ok">ОК</button>
     </div>
   </div>
 </div>
@@ -329,7 +324,7 @@
 </div>
 
 <div class="modal-overlay" id="reset-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-header"><div class="modal-title" data-i18n="reset_title">Сброс пароля</div><button class="close-btn" onclick="closeModal('reset-modal')">✕</button></div>
     
     <div id="reset-step-1" class="reset-step active">
@@ -360,7 +355,7 @@
 </div>
 
 <div class="modal-overlay" id="preview-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-title" data-i18n="report_preview_title">Предпросмотр отчета</div>
       <button class="close-btn" onclick="closeModal('preview-modal')">✕</button>
@@ -446,20 +441,22 @@
       
       <div class="total-card" style="margin-top: 15px; padding: 20px; text-align: left;">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--text);" data-i18n="settings_title">Настройки</div>
-        <div class="input-group">
-            <label data-i18n="theme_lbl">Тема</label>
-            <select id="theme-select" onchange="setTheme(this.value)">
-                <option value="system" data-i18n="theme_sys">Системная</option>
-                <option value="dark" data-i18n="theme_dark">Тёмная</option>
-                <option value="light" data-i18n="theme_light">Светлая</option>
-            </select>
+        
+        <div class="settings-row">
+            <div class="settings-label" data-i18n="theme_lbl">Тема</div>
+            <div class="segmented-control" id="theme-control">
+                <button class="segmented-btn" onclick="setTheme('system')" data-i18n="theme_sys">Системная</button>
+                <button class="segmented-btn" onclick="setTheme('dark')" data-i18n="theme_dark">Тёмная</button>
+                <button class="segmented-btn" onclick="setTheme('light')" data-i18n="theme_light">Светлая</button>
+            </div>
         </div>
-        <div class="input-group" style="margin-bottom: 0;">
-            <label data-i18n="lang_lbl">Язык</label>
-            <select id="lang-select" onchange="setLanguage(this.value)">
-                <option value="ru">Русский</option>
-                <option value="en">English</option>
-            </select>
+        
+        <div class="settings-row">
+            <div class="settings-label" data-i18n="lang_lbl">Язык</div>
+            <div class="segmented-control" id="lang-control">
+                <button class="segmented-btn" onclick="setLanguage('ru')">Русский</button>
+                <button class="segmented-btn" onclick="setLanguage('en')">English</button>
+            </div>
         </div>
       </div>
 
@@ -487,7 +484,7 @@
 </div>
 
 <div class="modal-overlay" id="all-expenses-modal">
-  <div class="modal-sheet" style="max-height: 85vh;">
+  <div class="modal-sheet" style="max-height: 85vh;" onclick="event.stopPropagation()">
     <div class="modal-header"><div class="modal-title" data-i18n="all_exp_title">Все расходы</div><button class="close-btn" onclick="closeModal('all-expenses-modal')">✕</button></div>
     <div class="input-group"><label data-i18n="sort_lbl">Фильтр сортировки</label><select id="sort-select" onchange="renderAllExpensesList()"><option value="newest" data-i18n="sort_new">По новизне (сначала новые)</option><option value="oldest" data-i18n="sort_old">Самые старые</option><option value="expensive" data-i18n="sort_exp">Самые дорогие</option><option value="cheapest" data-i18n="sort_cheap">Самые дешевые</option></select></div>
     <div class="expense-list" id="all-expenses-list" style="margin-top: 20px;"></div>
@@ -495,7 +492,7 @@
 </div>
 
 <div class="modal-overlay" id="expense-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-header"><div class="modal-title" id="exp-modal-title" data-i18n="exp_title_new">Новый расход</div><button class="close-btn" onclick="closeModal('expense-modal')">✕</button></div>
     <form id="expense-form" onsubmit="event.preventDefault(); saveExpense();">
       <input type="hidden" id="exp-id">
@@ -521,7 +518,7 @@
 </div>
 
 <div class="modal-overlay" id="car-modal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-header"><div class="modal-title" id="car-modal-title" data-i18n="car_title_new">Новый автомобиль</div><button class="close-btn" onclick="closeModal('car-modal')">✕</button></div>
     <form id="car-form" onsubmit="event.preventDefault(); saveCar();">
       <input type="hidden" id="car-id">
@@ -543,6 +540,7 @@
   // ====================================================================
   const translations = {
     ru: {
+        loading_txt: 'Загрузка...',
         welcome_title: 'Добро пожаловать',
         welcome_sub: 'Учёт ремонтов, запчастей и расходов',
         welcome_feat_1: '🛠️ Учёт ремонтов и покупок',
@@ -700,6 +698,7 @@
         report_no_exp: 'Расходов нет'
     },
     en: {
+        loading_txt: 'Loading...',
         welcome_title: 'Welcome',
         welcome_sub: 'Maintenance, parts and expense tracking',
         welcome_feat_1: '🛠️ Track repairs and purchases',
@@ -869,8 +868,11 @@
       localStorage.setItem('lang', lang);
       document.documentElement.lang = lang;
       
-      const langSelect = document.getElementById('lang-select');
-      if(langSelect) langSelect.value = lang;
+      const langBtns = document.querySelectorAll('#lang-control .segmented-btn');
+      langBtns.forEach(btn => {
+          if(btn.textContent.toLowerCase().includes(lang === 'ru' ? 'рус' : 'eng')) btn.classList.add('active');
+          else btn.classList.remove('active');
+      });
 
       document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.getAttribute('data-i18n');
@@ -881,7 +883,9 @@
           }
       });
       
-      // Update active tab texts if needed
+      if (document.getElementById('screen-profile').classList.contains('active')) {
+          renderProfile();
+      }
       renderAll();
   }
 
@@ -900,11 +904,18 @@
       } else {
           document.documentElement.setAttribute('data-theme', theme);
       }
+      
+      const themeBtns = document.querySelectorAll('#theme-control .segmented-btn');
+      themeBtns.forEach(btn => {
+          btn.classList.remove('active');
+      });
+      if (theme === 'system') document.querySelector('#theme-control .segmented-btn:nth-child(1)').classList.add('active');
+      if (theme === 'dark') document.querySelector('#theme-control .segmented-btn:nth-child(2)').classList.add('active');
+      if (theme === 'light') document.querySelector('#theme-control .segmented-btn:nth-child(3)').classList.add('active');
   }
 
   function setTheme(theme) {
       localStorage.setItem('theme', theme);
-      document.getElementById('theme-select').value = theme;
       applyTheme(theme);
   }
 
@@ -1499,8 +1510,8 @@
     
     // Init toggles
     const savedTheme = localStorage.getItem('theme') || 'system';
-    document.getElementById('theme-select').value = savedTheme;
-    document.getElementById('lang-select').value = currentLang;
+    applyTheme(savedTheme);
+    applyLanguage(currentLang);
   }
 
   document.getElementById('support-email').addEventListener('click', function() {
@@ -1515,7 +1526,18 @@
   });
 
   function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  
+  function closeModal(id) { 
+      document.getElementById(id).classList.remove('open'); 
+      if (id === 'expense-modal') {
+          document.getElementById('expense-form').reset();
+          document.getElementById('exp-id').value = '';
+      }
+      if (id === 'car-modal') {
+          document.getElementById('car-form').reset();
+          document.getElementById('car-id').value = '';
+      }
+  }
 
   function openPreviewModal() {
     const html = generateReportHTML();
@@ -1616,8 +1638,6 @@
 
   async function saveCar() {
     const id = document.getElementById('car-id').value; const genValue = document.getElementById('car-generation').value; const plate = document.getElementById('car-plate').value;
-    if (!/^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/.test(plate) && currentLang === 'ru') return showToast(t('msg_plate_err'), 'error');
-    // Add a fallback for english or just keep the RU validation logic
     if (!plate) return showToast(t('msg_plate_err'), 'error');
 
     const data = { user_id: currentUser.id, brand: document.getElementById('car-brand').value.trim(), model: document.getElementById('car-model').value.trim(), year: document.getElementById('car-year').value.trim(), generation: document.getElementById('gen-group').style.display !== 'none' && genValue ? genValue : null, engine: document.getElementById('car-engine').value.trim(), plate: plate, color: document.getElementById('car-color').value.trim() };
