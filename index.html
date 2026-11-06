@@ -95,17 +95,20 @@
   .app-container.active { display: flex; animation: fadeIn 0.4s ease; }
   
   @media (min-width: 900px) {
-    .app-container { max-width: 1200px; margin: 0 auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
-    .main-content { padding: 20px 40px 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-content: start; overflow-y: auto; flex: 1; }
-    .screen { grid-column: 1 / -1; }
-    .screen#screen-home { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+    body { display: block; }
+    .app-container { max-width: 100%; width: 100%; box-shadow: none; margin: 0; }
+    .main-content { max-width: 1200px; margin: 0 auto; padding: 20px 40px 100px; display: flex; flex-direction: column; gap: 30px; width: 100%; }
+    .screen { display: none; width: 100%; }
+    .screen.active { display: block; }
+    .screen#screen-home { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; width: 100%; align-items: start; }
     .home-left { position: sticky; top: 20px; }
-    .fab-add { max-width: 400px; bottom: 90px; }
-    .car-list, .report-controls { grid-column: 1 / -1; }
+    .header { max-width: 1200px; margin: 0 auto; padding: 20px 40px 10px; width: 100%; }
+    .fab-add { max-width: 400px; bottom: 90px; left: calc(50% + 200px); }
+    .car-list, .report-controls { width: 100%; }
   }
 
   /* Фиксация шапки */
-  .header { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; transition: background 0.3s; }
+  .header { z-index: 100; background: var(--bg); padding: 10px 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; transition: background 0.3s; }
   .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
   .logo-img { width: 130px; height: 130px; object-fit: contain; }
 
@@ -168,7 +171,21 @@
   /* Поля ввода и защита от вылезания */
   .input-group { margin-bottom: 16px; position: relative; width: 100%; min-width: 0; }
   .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-  .input-group input, .input-group select { width: 100%; min-width: 0; max-width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s, background 0.3s; color-scheme: dark; }
+  .input-group input, .input-group select { 
+    width: 100%; 
+    max-width: 100%; 
+    min-width: 0; 
+    background: var(--bg); 
+    border: 1px solid var(--border); 
+    color: var(--text); 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-size: 16px; 
+    outline: none; 
+    transition: border 0.2s, background 0.3s; 
+    color-scheme: dark; 
+    -webkit-appearance: none; /* Fix iOS dates */
+  }
   [data-theme="light"] .input-group input, [data-theme="light"] .input-group select { color-scheme: light; }
   .input-group input:focus, .input-group select:focus { border-color: var(--yellow); }
   
@@ -436,7 +453,7 @@
       <div class="total-card" style="margin-top: 0; text-align: center; padding: 30px 20px;">
         <div style="width: 64px; height: 64px; background: var(--yellow); color: #000; border-radius: 50%; display: grid; place-items: center; font-size: 28px; font-weight: 800; margin: 0 auto 15px;" id="profile-avatar">A</div>
         <div style="font-size: 20px; font-weight: 700; margin-bottom: 5px;" id="profile-login">@user</div>
-        <div style="color: var(--text-muted); font-size: 13px;" id="profile-date" data-i18n="profile_reg_date">Дата регистрации</div>
+        <div style="color: var(--text-muted); font-size: 13px;" id="profile-date"></div>
       </div>
       
       <div class="total-card" style="margin-top: 15px; padding: 20px; text-align: left;">
@@ -857,13 +874,18 @@
     }
   };
 
-  let currentLang = localStorage.getItem('lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+  // Инициализация языка по умолчанию с защитой от некорректных значений
+  let currentLang = localStorage.getItem('lang');
+  if (!currentLang || !translations[currentLang]) {
+      currentLang = 'ru'; // Всегда русский по умолчанию
+  }
   
   function t(key) {
       return translations[currentLang][key] || key;
   }
 
   function applyLanguage(lang) {
+      if (!translations[lang]) lang = 'ru';
       currentLang = lang;
       localStorage.setItem('lang', lang);
       document.documentElement.lang = lang;
@@ -883,6 +905,7 @@
           }
       });
       
+      // Обновляем только если активен экран профиля, чтобы не сбить дату
       if (document.getElementById('screen-profile').classList.contains('active')) {
           renderProfile();
       }
