@@ -270,7 +270,7 @@
     </div>
     
     <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
-      <input type="text" id="auth-email" class="auth-input" placeholder="Email или Логин" required>
+      <input type="email" id="auth-email" class="auth-input" placeholder="Email" required>
       <input type="password" id="auth-pass" class="auth-input" placeholder="Пароль (минимум 8 символов)" required>
       <input type="password" id="auth-pass2" class="auth-input" placeholder="Повторите пароль" style="display: none;">
       
@@ -616,19 +616,15 @@
   }
 
   async function handleAuth() {
-    let loginInput = document.getElementById('auth-email').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
     const pass = document.getElementById('auth-pass').value;
     const pass2 = document.getElementById('auth-pass2').value;
     const btn = document.getElementById('auth-submit');
     
     hideAuthError();
 
-    if (!loginInput) return showAuthError('Введите Email или Логин');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAuthError('Введите корректный Email');
     if (pass.length < 8 || !/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(pass)) return showAuthError('Пароль должен быть не менее 8 символов (только английские буквы и цифры)');
-
-    if (isRegisterMode) {
-      if (!loginInput.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginInput)) return showAuthError('Введите корректный Email');
-    }
 
     btn.classList.add('loading');
     btn.disabled = true;
@@ -636,10 +632,10 @@
     try {
       if (isRegisterMode) {
         if (pass !== pass2) throw new Error('Пароли не совпадают');
-        const defaultLogin = loginInput.split('@')[0];
+        const defaultLogin = email.split('@')[0];
         
         const { data, error } = await supabaseClient.auth.signUp({ 
-          email: loginInput, 
+          email: email, 
           password: pass,
           options: { data: { login: defaultLogin }, emailRedirectTo: window.location.origin + window.location.pathname + '?confirmed=true' }
         });
@@ -647,7 +643,7 @@
         if (error) throw error;
         
         if (data.user) {
-          await supabaseClient.from('profiles').insert({ id: data.user.id, login: defaultLogin, email: loginInput });
+          await supabaseClient.from('profiles').insert({ id: data.user.id, login: defaultLogin, email: email }).catch(()=>{});
         }
 
         if (data.user && !data.session) {
@@ -665,16 +661,7 @@
           await loginUser({ user: data.user });
         }
       } else {
-        // Используем RPC для безопасного получения email по логину
-        if (!loginInput.includes('@')) {
-           const { data: emailData, error: emailErr } = await supabaseClient.rpc('get_email_by_login', { user_login: loginInput });
-           if (emailErr || !emailData) {
-              throw new Error('Пользователь с таким логином не найден');
-           }
-           loginInput = emailData;
-        }
-        
-        const { error } = await supabaseClient.auth.signInWithPassword({ email: loginInput, password: pass });
+        const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
         if (error) {
           if (error.message.includes('Email not confirmed')) throw new Error('Email не подтвержден. Пожалуйста, проверьте почту.');
           throw error;
@@ -682,7 +669,7 @@
       }
     } catch (error) {
       let msg = error.message;
-      if (msg === 'Invalid login credentials') msg = 'Неверный email/логин или пароль';
+      if (msg === 'Invalid login credentials') msg = 'Неверный email или пароль';
       if (msg.includes('Load failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = 'Ошибка сети. Проверьте подключение к интернету.';
       showAuthError(msg);
     } finally {
@@ -843,11 +830,19 @@
   async function loginUser(session) {
     currentUser = session.user;
     
-    // Оборачиваем в try/catch, чтобы при ошибке загрузки данных приложение не зависало
+    // Failsafe to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+        const loader = document.getElementById('loading-screen');
+        if (loader) loader.remove();
+        document.getElementById('welcome-screen').classList.remove('active');
+        document.getElementById('auth-screen').classList.remove('active');
+        document.getElementById('app-container').classList.add('active');
+    }, 5000); // If it takes more than 5s, force show the app
+
     try {
-      const { data: cars, error: carsErr } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
-      const { data: expenses, error: expErr } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
-      const { data: reminders, error: remErr } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
+      const { data: cars } = await supabaseClient.from('cars').select('*').eq('user_id', currentUser.id);
+      const { data: expenses } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
+      const { data: reminders } = await supabaseClient.from('reminders').select('*').eq('user_id', currentUser.id);
       
       userCars = cars || [];
       userExpenses = expenses || [];
@@ -860,24 +855,30 @@
         currentCarId = null;
       }
     } catch (e) {
-      console.warn('Data fetch failed:', e);
-      userCars = []; userExpenses = []; userReminders = [];
+      console.warn('Data fetch error:', e);
+      // Initialize empty arrays on failure so app doesn't crash
+      userCars = userCars || [];
+      userExpenses = userExpenses || [];
+      userReminders = userReminders || [];
+    } finally {
+      clearTimeout(loadingTimeout);
+      
+      const loader = document.getElementById('loading-screen');
+      if (loader) loader.remove();
+      
+      document.getElementById('welcome-screen').classList.remove('active');
+      document.getElementById('auth-screen').classList.remove('active');
+      document.getElementById('app-container').classList.add('active');
+
+      if (window.location.search.includes('confirmed=true')) {
+        showToast('Аккаунт успешно подтвержден! Добро пожаловать.', 'success');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      renderAll();
+      const savedTab = localStorage.getItem('activeTab') || 'home';
+      switchTab(savedTab);
     }
-
-    document.getElementById('welcome-screen').classList.remove('active');
-    document.getElementById('auth-screen').classList.remove('active');
-    document.getElementById('app-container').classList.add('active');
-    const loader = document.getElementById('loading-screen');
-    if (loader) loader.remove();
-
-    if (window.location.search.includes('confirmed=true')) {
-      showToast('Аккаунт успешно подтвержден! Добро пожаловать.', 'success');
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    renderAll();
-    const savedTab = localStorage.getItem('activeTab') || 'home';
-    switchTab(savedTab);
   }
 
   function logout() {
@@ -892,9 +893,8 @@
 
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (event === 'INITIAL_SESSION') {
-      if (session) {
-        await loginUser(session);
-      } else {
+      if (session) await loginUser(session);
+      else {
         const loader = document.getElementById('loading-screen');
         if (loader) loader.remove();
         showWelcomeScreen();
