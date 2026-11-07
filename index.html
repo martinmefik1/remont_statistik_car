@@ -1126,7 +1126,8 @@
         if (error) throw error;
         
         if (data.user) {
-          await supabaseClient.from('profiles').insert({ id: data.user.id, login: defaultLogin, email: email }).catch(()=>{});
+          // ИСПРАВЛЕНО: убрано .catch() так как это не Promise
+          await supabaseClient.from('profiles').insert({ id: data.user.id, login: defaultLogin, email: email });
         }
 
         if (data.user && !data.session) {
